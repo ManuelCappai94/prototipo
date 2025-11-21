@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Chase & Combat Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --bg:#111; --ui:#eee; --muted:#aaa; }
+    body { margin:0; background:var(--bg); color:var(--ui); font:14px/1.4 system-ui, sans-serif; display:grid; place-items:center; min-height:100svh; }
+    #wrap { display:grid; gap:8px; }
+    canvas { background:#1d1f24; border:1px solid #2c2f36; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .hud { display:flex; gap:16px; justify-content:space-between; font-weight:600; }
+    .hud .left { display:flex; gap:16px; }
+    .bar { width:220px; height:10px; background:#2b2b2b; border-radius:6px; overflow:hidden; border:1px solid #444; }
+    .bar > i { display:block; height:100%; background:linear-gradient(90deg, #30d158, #42ba96); }
+    .bar.enemy > i { background:linear-gradient(90deg, #ff3b30, #ff453a); }
+    .help { color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div class="hud">
+      <div class="left">
+        <span>HP Giocatore</span>
+        <span class="bar"><i id="hpP" style="width:100%"></i></span>
+        <span id="hpPtxt">100/100</span>
+      </div>
+      <div class="left">
+        <span>HP Nemico</span>
+        <span class="bar enemy"><i id="hpE" style="width:100%"></i></span>
+        <span id="hpEtxt">100/100</span>
+      </div>
+    </div>
+    <canvas id="game" width="720" height="420"></canvas>
+    <div class="help">Muovi: WASD / Frecce • Attacca: Barra Spaziatrice • Il nemico ti aggra se ti avvicini, altrimenti perde l’aggro</div>
+  </div>
+
+  <script>
+  (() => {
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    // --- Config ---
+    const WORLD = { w: canvas.width, h: canvas.height };
+    const PLAYER = { w: 28,
+         h: 28,
+          speed: 220,
+           maxHP: 100,
+            dmg: 20,
+             atkRange: 42,
+              atkCooldown: 380 
+            };
+    const ENEMY  = { w: 32,
+         h: 32,
+          speed: 150, 
+          maxHP: 100,
+           dmg: 20, atkRange: 36,
+            atkCooldown: 600,
+                     aggroRadius: 180,
+                      deaggroRadius: 220 };
+
+    // --- Entities ---
+    const player = {
+      x: WORLD.w*0.25, y: WORLD.h*0.5, ...PLAYER,
+      hp: PLAYER.maxHP, lastAtk: -Infinity
+    };
+
+    const enemySpawn = { x: WORLD.w*0.75, y: WORLD.h*0.5 };
+    const enemy = {
+      x: enemySpawn.x, y: enemySpawn.y, ...ENEMY,
+      hp: ENEMY.maxHP, lastAtk: -Infinity, aggro: false
+    };
+
+    // --- Input ---
+    const keys = new Set();
+    addEventListener('keydown', e => {
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+      keys.add(e.key.toLowerCase());
+    });
+    addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+
+    // --- Utils ---
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const dist = (ax, ay, bx, by) => Math.hypot(ax-bx, ay-by);
+
+    function moveEntity(ent, vx, vy, dt) {
+      const mag = Math.hypot(vx, vy) || 1;
+      const nx = (vx/mag) * ent.speed * dt;
+      const ny = (vy/mag) * ent.speed * dt;
+      ent.x = clamp(ent.x + nx, ent.w/2, WORLD.w - ent.w/2);
+      ent.y = clamp(ent.y + ny, ent.h/2, WORLD.h - ent.h/2);
+    }
+
+    function attack(attacker, target, now) {
+      if (now - attacker.lastAtk < attacker.atkCooldown) return false;
+      if (dist(attacker.x, attacker.y, target.x, target.y) <= attacker.atkRange) {
+        attacker.lastAtk = now;
+        target.hp = Math.max(0, target.hp - attacker.dmg);
+        flashScreen(attacker === player ? 'player' : 'enemy');
+        return true;
+      }
+      return false;
+    }
+
+    // --- Simple screen flash for hits ---
+    let flash = 0, flashColor = 'rgba(255,255,255,0.5)';
+    function flashScreen(by) {
+      flash = 0.12;
+      flashColor = by === 'player' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 64, 64, 0.25)';
+    }
+
+    // --- Enemy AI ---
+    function updateEnemy(dt, now) {
+      const d = dist(enemy.x, enemy.y, player.x, player.y);
+
+      // Aggro logic with hysteresis
+      if (!enemy.aggro && d <= enemy.aggroRadius) enemy.aggro = true;
+      if (enemy.aggro && d > enemy.deaggroRadius) enemy.aggro = false;
+
+      if (enemy.aggro) {
+        // chase player
+        const vx = player.x - enemy.x;
+        const vy = player.y - enemy.y;
+        moveEntity(enemy, vx, vy, dt);
+        // attack if close
+        attack(enemy, player, now);
+      } else {
+        // return to spawn if far
+        const back = dist(enemy.x, enemy.y, enemySpawn.x, enemySpawn.y);
+        if (back > 2) {
+          moveEntity(enemy, enemySpawn.x - enemy.x, enemySpawn.y - enemy.y, dt);
+        }
+      }
+    }
+
+    // --- Player update ---
+    function updatePlayer(dt, now) {
+      let vx = 0, vy = 0;
+      if (keys.has('w') || keys.has('arrowup')) vy -= 1;
+      if (keys.has('s') || keys.has('arrowdown')) vy += 1;
+      if (keys.has('a') || keys.has('arrowleft')) vx -= 1;
+      if (keys.has('d') || keys.has('arrowright')) vx += 1;
+      moveEntity(player, vx, vy, dt);
+
+      if (keys.has(' ')) attack(player, enemy, now);
+    }
+
+    // --- Draw ---
+    function draw() {
+      ctx.clearRect(0,0,WORLD.w,WORLD.h);
+
+      // Grid background
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      for (let x=0; x<WORLD.w; x+=30) {
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,WORLD.h); ctx.strokeStyle='#60636b'; ctx.stroke();
+      }
+      for (let y=0; y<WORLD.h; y+=30) {
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD.w,y); ctx.strokeStyle='#60636b'; ctx.stroke();
+      }
+      ctx.restore();
+
+      // Aggro circles (debug)
+      ctx.save();
+      ctx.strokeStyle = enemy.aggro ? 'rgba(255,64,64,.35)' : 'rgba(255,64,64,.15)';
+      ctx.setLineDash([6,6]);
+      ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.aggro ? ENEMY.deaggroRadius : ENEMY.aggroRadius, 0, Math.PI*2); ctx.stroke();
+      ctx.restore();
+
+      // Enemy (red)
+      ctx.fillStyle = '#ff3b30';
+      ctx.fillRect(enemy.x - ENEMY.w/2, enemy.y - ENEMY.h/2, ENEMY.w, ENEMY.h);
+
+      // Player (blue)
+      ctx.fillStyle = '#3aa6ff';
+      ctx.fillRect(player.x - PLAYER.w/2, player.y - PLAYER.h/2, PLAYER.w, PLAYER.h);
+
+      // Attack ranges (optional debug – faint)
+      ctx.save();
+      ctx.globalAlpha = .08;
+      ctx.fillStyle = '#3aa6ff';
+      ctx.beginPath(); ctx.arc(player.x, player.y, PLAYER.atkRange, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ff3b30';
+      ctx.beginPath(); ctx.arc(enemy.x, enemy.y, ENEMY.atkRange, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // Flash on hit
+      if (flash > 0) {
+        ctx.save();
+        ctx.fillStyle = flashColor;
+        ctx.fillRect(0,0,WORLD.w,WORLD.h);
+        ctx.restore();
+      }
+    }
+
+    // --- HUD update ---
+    const hpPBar = document.getElementById('hpP');
+    const hpEBar = document.getElementById('hpE');
+    const hpPtxt = document.getElementById('hpPtxt');
+    const hpEtxt = document.getElementById('hpEtxt');
+    function updateHUD() {
+      const pPct = Math.max(0, (player.hp / player.maxHP) * 100);
+      const ePct = Math.max(0, (enemy.hp  / enemy.maxHP)  * 100);
+      hpPBar.style.width = pPct + '%';
+      hpEBar.style.width = ePct + '%';
+      hpPtxt.textContent = `${player.hp}/${player.maxHP}`;
+      hpEtxt.textContent = `${enemy.hp}/${enemy.maxHP}`;
+    }
+
+    // --- Game loop ---
+    let last = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.033, (now - last) / 1000); // clamp dt
+      last = now;
+
+      if (player.hp > 0 && enemy.hp > 0) {
+        updatePlayer(dt, now);
+        updateEnemy(dt, now);
+      }
+
+      // small decay for hit flash
+      flash = Math.max(0, flash - dt);
+
+      draw();
+      updateHUD();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // --- Reset with R ---
+    addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'r') {
+        Object.assign(player, { x: WORLD.w*0.25, y: WORLD.h*0.5, hp: PLAYER.maxHP, lastAtk: -Infinity });
+        Object.assign(enemy,  { x: enemySpawn.x,  y: enemySpawn.y,  hp: ENEMY.maxHP, aggro:false, lastAtk: -Infinity });
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

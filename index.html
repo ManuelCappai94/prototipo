@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipo</title>
+    <style>
+        /* creiamo il contesto per tutta la pagina, e per lo scenario */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* impediamo al contenuto di superare il limite del body */
+        body {
+            overflow: hidden;
+        }
+        img {
+            display: none;
+        }
+        #gameScenario {
+            
+            
+            top: 0; 
+            left: 0;
+         
+         }
+         #loading {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            text-align: center ;
+            font-size: 80px;
+         }
+         .hp{
+            position : fixed;
+            top: 80px;
+            border: 2px solid black;
+         }
+    </style>
+</head>
+<body>
+    <canvas id="gameScenario" ></canvas>
+    <!-- aggiungo gli assets che vogglio siano caricati per primi  -->
+     <img id="playerSprite" src="main/player.png">
+     <h1 id="loading"> CARICAMENTO </h1>
+    <h2 class="hp"></h2>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

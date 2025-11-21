@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tile Collision Editor</title>
+    <style>
+        canvas {
+            border: 3px solid black;
+            display: block;
+            margin: 20px auto;
+            background: #ccc;
+        }
+        button {
+            display: block;
+            margin: 10px auto;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button id="export">Esporta Mappa</button>
+        <button id="coord-mode">Modalità Coordinate: OFF</button>
+        <input type="file" id="import-image" accept="image/png" style="display: none;">
+        <button id="load-image">Importa Immagine</button>
+    </div>
+    <canvas id="editor" width="1280" height="720"></canvas>
+
+    <script>
+        const TILE_SIZE = 16;
+        const ROWS = 720 / TILE_SIZE;
+        const COLS = 1280 / TILE_SIZE;
+
+        const canvas = document.getElementById("editor");
+        const ctx = canvas.getContext("2d");
+
+        const tiles = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        let isRightClicking = false;
+        let coordMode = false;
+        let backgroundImage = null;
+
+        // Disegna griglia + background + tile verdi
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (backgroundImage) {
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            }
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (tiles[r][c] === 1) {
+                        ctx.fillStyle = "rgba(0, 200, 0, 0.6)";
+                        ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    }
+                    ctx.strokeStyle = "black";
+                    ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+
+        function getTileCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            return {
+                col: Math.floor(x / TILE_SIZE),
+                row: Math.floor(y / TILE_SIZE),
+            };
+        }
+
+        canvas.addEventListener("click", (e) => {
+            const { row, col } = getTileCoords(e);
+
+            if (coordMode) {
+                alert(`Coordinata Tile: (row: ${row}, col: ${col})`);
+                console.log(`Clicked tile at row ${row}, col ${col}`);
+                return;
+            }
+
+            if (e.button === 0) {
+                tiles[row][col] = tiles[row][col] === 1 ? 0 : 1;
+                drawGrid();
+            }
+        });
+
+        // Disegna col destro
+        canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        canvas.addEventListener("mousedown", (e) => {
+            if (!coordMode && e.button === 2) {
+                isRightClicking = true;
+                const { row, col } = getTileCoords(e);
+                tiles[row][col] = 1;
+                drawGrid();
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            isRightClicking = false;
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (!coordMode && isRightClicking) {
+                const { row, col } = getTileCoords(e);
+                tiles[row][col] = 1;
+                drawGrid();
+            }
+        });
+
+        // Toggle Coordinate Mode
+        document.getElementById("coord-mode").addEventListener("click", () => {
+            coordMode = !coordMode;
+            document.getElementById("coord-mode").textContent = `Modalità Coordinate: ${coordMode ? "ON" : "OFF"}`;
+        });
+
+        // Carica immagine di background
+        document.getElementById("load-image").addEventListener("click", () => {
+            document.getElementById("import-image").click();
+        });
+
+        document.getElementById("import-image").addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const img = new Image();
+                img.onload = () => {
+                    backgroundImage = img;
+                    drawGrid();
+                };
+                img.src = URL.createObjectURL(file);
+            }
+        });
+
+        // Esporta array mappa
+        document.getElementById("export").addEventListener("click", () => {
+            console.log(JSON.stringify(tiles));
+            alert("Mappa esportata! Copia l'array dalla console.");
+        });
+
+        drawGrid();
+    </script>
+</body>
+</html>

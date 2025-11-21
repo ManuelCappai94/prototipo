@@ -1,0 +1,2 @@
+check the video, on thr jump part, to implement some phisics on arrows from enemies
+https://www.youtube.com/watch?v=jKe44NeFzwE&t=3108s
