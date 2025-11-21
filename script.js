@@ -4,6 +4,8 @@ import {currentMap, collision,  updateMap} from "./maps.js";
 import { tileSize } from "./camera.js";
 import {  scale, MAP_HEIGHT, MAP_WIDTH } from "./camera.js";
 import Camera from "./camera.js";
+import { Eye } from "./assets.js";
+// import { Eye } from "./assets.js";
 
 const hp = document.querySelector(".hp")
 
@@ -141,13 +143,17 @@ function debugAggroRange (ctx){
         drawMap();
         updateMap(player);
         currentMap.objects.forEach(obj => {
+            
             obj.draw(ctx, deltaTime)
             obj.collisionsObjects(player)
             // obj.hp = obj.maxHp;
             obj.checkHit(player)
-            // obj.doorOpened()
+            if(obj instanceof Eye){
+                obj.getdistance(player)
+            }
             hp.textContent=`${obj.hp}`
         });
+     
         currentMap.enemies.forEach(enemy => {
             enemy.draw(ctx, deltaTime)
            
@@ -161,6 +167,7 @@ function debugAggroRange (ctx){
         debugAggroRange(ctx)
         camera.follow(player);
         camera.apply(ctx);
+        
         player.update(input.lastKey);
         //aggiungiamo a player la funzione draw, e come argomento il contesto 2d; va messo qua dentro perchè se no clearReact lo cancellerebbe dopo un frame
         ////aggiungiamo anche il deltatime a player.draw, come argomento; dobbiamo essere sicuri che anche il draw in player.js aspetti quell'argomento e aggiungiamo variabili nell'istanza player in player.js
@@ -172,7 +179,7 @@ function debugAggroRange (ctx){
     };
 
     // ctx.scale(scale, scale)
-    camera.setZoom(6); // 2x ingrandimento
+    camera.setZoom(4); // 2x ingrandimento
     //mettiamo 0 perchè requestAnimationFrames, auto genera dal secondo loop
     animate(0);
 })

@@ -42,4 +42,9 @@ setZoom(zoom) {
 
 }
 
+
+
+
+
+
 export {scale, MAP_HEIGHT, MAP_WIDTH}

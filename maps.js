@@ -1,6 +1,6 @@
 import Player from "./player.js";
 import { tileSize } from "./camera.js";
-import {Tree, Vase, Treasure, Door} from "./assets.js";
+import {Tree, Vase, Treasure, Door, Eye} from "./assets.js";
 import  Enemies, {Gino} from "./enemies.js"
 
 
@@ -30,7 +30,8 @@ const maps = [
          new Vase(21*16, 39*16 ),
          new Treasure(28*16, 8*16),
          new Door(63*16, 26*16, "frontSud"),
-         new Door(51*16, 29*16, "sideEst")
+         new Door(51*16, 29*16, "sideEst"),
+         new Eye(39*16, 22*16),
        ],
        enemies: [
         new Gino (45*16, 29*16),
@@ -137,5 +138,7 @@ function updateMap (player) {
         player.x = canvas.width - player.w;
     }
 }
+
+
 
 export {currentMap, updateMap}

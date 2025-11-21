@@ -1,13 +1,11 @@
 
 
 
-
-
-
 const prompts =  {
         tree :  new Image(),
         vase : new Image(),
         treasure: new Image(),
+        frame: new Image(),
         doors: {
             doorSud: new Image(),
             doorEst: new Image(),
@@ -21,6 +19,7 @@ prompts.vase.src = "assets/vase.png"
 prompts.treasure.src = "assets/treasure.png"
 prompts.doors.doorSud.src = "assets/doorFrontSud.png"
 prompts.doors.doorEst.src = "assets/doorSideLeft.png"
+prompts.frame.src= "assets/eye.png"
 
 
 
@@ -78,6 +77,9 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
                 height: this.h* this.offsetH ,       
         }
         this.isClosing= false
+        if(this.isLooking) {this.startAnimation += deltaTime
+            console.log(this.startAnimation)
+        }
         }
             
             
@@ -168,6 +170,42 @@ export class Tree extends Assets {
         }
     }
 }
+
+export class Eye extends Assets {
+    constructor(x,y){
+        super(x, y, 64, 64, prompts.frame)
+        this.w = 64,
+        this.h= 64,
+        this.hitbox = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+        }
+        this.shape = {...this.hitbox}
+        //animazione
+        this.frameX= 0;
+        // this.frameY = 0;
+        this.maxFrame = 5;
+        this.frameTimer= 0;
+        this.fps = 8;
+        this.frameInterval = 1000/this.fps;
+        //timer per cambio animazione
+        this.startAnimation = 0;
+        this.isLooking= false;
+        this.proximity = 100;
+        
+    }
+    getdistance(player){
+     const vX = player.x - this.x;
+     const vY = player.y - this.y;
+     const distance = Math.hypot(vX, vY)
+     if(distance < this.proximity) this.isLooking = true
+    }
+
+
+}
+
 export class Vase extends Assets {
     constructor(x,y){
         super(x, y, 64, 63, prompts.vase)
@@ -319,3 +357,6 @@ export class Treasure extends Interactable {
 
 }
 
+const eye = new Eye
+
+console.log(eye.isLooking)
