@@ -13,6 +13,7 @@ export const states = {
     ATTACK_FRONT: 9,
     ATTACK_LEFT: 10,
     ATTACK_RIGHT:11,
+    DEATH:12,
    
 }
 
@@ -324,8 +325,7 @@ export class AttackRight extends State {
     constructor(player) {
         super("attack right");
         this.player = player;
-           ////hitbox di attacco
-        
+       ////hitbox di attacco     
     }
     enter() {
         this.player.frameY = 11;
@@ -333,23 +333,9 @@ export class AttackRight extends State {
         this.player.maxFrames = 4; // Se hai 4 frame totali (0,1,2,3)
         this.player.speedx = 0;
         this.player.speedy = 0;
-        this.player.hasHit = false;
-        
-        //gestione frame hitbox
-      
-        //  this.player.attackHitbox = {
-        //     x: this.player.x + this.player.w, //posizione iniziale + larghezza
-        //     y: this.player.y + 8 ,
-        //     width:this.player.w *0.5,
-        //     height: this.player.h *0.5,
-        
-             
-    // }
-
+       
     }
-    handleInput(input) {
-     
-    }
+    handleInput(input) {}
     //quest'update mi serve per bloccare un animazione finito il ciclo.
     update(){
           // Frame in cui colpisce (esempio frameX === 1)
@@ -376,3 +362,25 @@ export class AttackRight extends State {
             }
     }
 }
+export class Death extends State {
+    constructor(player){
+        super("death")
+        this.player = player
+    }
+    enter(){
+        this.player.frameY = 13;
+        this.player.frameX= 0;
+        // this.player.maxFrames=8;
+        this.player.speedx = 0;
+        this.player.speedy = 0;
+    }
+    handleInput(){}
+    update(){
+         
+        if(this.isDeath = true && this.player.frameX >= this.player.maxFrame ) {
+             this.player.frameX = 7
+            this.player.maxFrame = 0
+            this.player.frameTimer = 0
+    }
+    }
+} 

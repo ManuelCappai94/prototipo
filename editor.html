@@ -31,37 +31,105 @@
         <button id="coord-mode">Modalità Coordinate: OFF</button>
         <input type="file" id="import-image" accept="image/png" style="display: none;">
         <button id="load-image">Importa Immagine</button>
+        <button id="res"></button>
+        
     </div>
-    <canvas id="editor" width="1280" height="720"></canvas>
+    <canvas id="editor"></canvas>
 
     <script>
+
+ function getData(){
+    let stored = JSON.parse(localStorage.getItem("res"))
+    return stored}
+   document.addEventListener("DOMContentLoaded", ()=>{
+
+  getData()
+  console.log(getData())
+  })  
+   const btnRes = document.getElementById("res")
+
+
+
+     btnRes.addEventListener("click", () => {
+       
+            if(res === 0) {
+                res = 1
+               localStorage.setItem("res", JSON.stringify(res) )
+       
+            } 
+            else {
+                res = 0
+                localStorage.setItem("res", JSON.stringify(res))
+          
+            }
+            location.reload()
+            
+        })
+
+   
+      let  res = getData() || 0
+      
+btnRes.textContent =`Resolution ${ res === 1? "1920*1080" : "1280*720"}`
+
+const resolution = () => {
+     let r, c, resolutionW, resolutionH
+       if(res === 0){
+            r = 720
+            c = 1280
+             resolutionW = 1280
+            resolutionH = 720
+            return {
+                r, c, resolutionW, resolutionH
+            } 
+            
+        } else if(res === 1){
+            r = 1080
+            c = 1920
+            resolutionW = 1920
+            resolutionH = 1080
+             return {
+                r, c, resolutionW, resolutionH
+            }
+        }
+   
+}
+ const  {r, c, resolutionW, resolutionH} = resolution()
+     
         const TILE_SIZE = 16;
-        const ROWS = 720 / TILE_SIZE;
-        const COLS = 1280 / TILE_SIZE;
+            const ROWS = r / TILE_SIZE;
+            const COLS = c / TILE_SIZE;
+           
+   
+     
 
         const canvas = document.getElementById("editor");
         const ctx = canvas.getContext("2d");
+        canvas.width = resolutionW
+        canvas.height = resolutionH
 
         const tiles = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
         let isRightClicking = false;
         let coordMode = false;
         let backgroundImage = null;
 
+         
+        
         // Disegna griglia + background + tile verdi
         function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+            ctx.clearRect(0, 0, resolutionW, resolutionH);
+          
             if (backgroundImage) {
-                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(backgroundImage, 0, 0, resolutionW, resolutionH);
             }
 
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
+            for (let r = 0; r <= ROWS; r++) {
+                for (let c = 0; c <= COLS; c++) {
+                  
                     if (tiles[r][c] === 1) {
                         ctx.fillStyle = "rgba(0, 200, 0, 0.6)";
                         ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                     }
-                    ctx.strokeStyle = "black";
+                    ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
                     ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                 }
             }
@@ -145,6 +213,8 @@
             alert("Mappa esportata! Copia l'array dalla console.");
         });
 
+   
+     
         drawGrid();
     </script>
 </body>

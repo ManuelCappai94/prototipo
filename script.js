@@ -1,33 +1,54 @@
 import Player from "./player.js";
 import InputHandler from "./input.js";
-import {currentMap, collision,  updateMap} from "./maps.js";
-import { tileSize } from "./camera.js";
-import {  scale, MAP_HEIGHT, MAP_WIDTH } from "./camera.js";
+import { drawMap, setMapData, currentMap, collision} from "./maps.js";
+import { loadTileMap } from "./maps/Villa/loadMap.js";
+import { Eye, Door, Vase, Candle } from "./assets.js";
+import {resolution_width, resolution_height, MAP_HEIGHT, MAP_WIDTH } from "./camera.js";
 import Camera from "./camera.js";
-import { Eye } from "./assets.js";
-// import { Eye } from "./assets.js";
-
-const hp = document.querySelector(".hp")
 
 
-// import { drawStatusText } from "./utils.js";
-
-
-//INIZIAMO CON L'AGGIUNGERE GLI EVENTI CHE VOGLIAMO SI VERIFICHINO AL CARICMANETO DELLA PAGINA
 window.addEventListener("load", function(){
     const loading = document.getElementById("loading");
     //quindi finche la pagina non è caricata mostrerà il titolo loading
     loading.style.display = "none";
+    const allCanvas = document.getElementById("game-container")
     const canvas = document.getElementById("gameScenario");
+    const entities = document.getElementById("layer-entities-objects")
+  
+    const layerFx = document.getElementById("layer-fx")
+    const layerHud = document.getElementById("layer-hud")
+
     const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const ctxEntities = entities.getContext("2d");
+   
+    const ctxFx = layerFx.getContext("2d");
+    const ctxHud = layerHud.getContext("2d");
+    
+
+    canvas.width = resolution_width;
+    canvas.height = resolution_height;
+    entities.width = resolution_width
+    entities.height = resolution_height
 
     //ora creiamo il costruttore player che in player.js vediamo che aspetta la larghezza e altezza, quindi gli passiamo..
-    const player = new Player(canvas.width, canvas.height)
+    const player = new Player()
     //chiamiamo la camera creata con il costruttore in camera.js
-    const camera = new Camera(canvas.width, canvas.height, MAP_WIDTH, MAP_HEIGHT);
+    const camera = new Camera(resolution_width, resolution_height, MAP_WIDTH, MAP_HEIGHT);
     
+    
+    let currentMapData = null;
+        let assetsLoaded = false;
+
+    async function startGame() {
+        currentMapData = await loadTileMap(currentMap.name);
+
+        setMapData(currentMapData)
+        assetsLoaded = true;
+    requestAnimationFrame(animate);
+
+
+}
+
 
 
     document.addEventListener("keyup",(e) =>{
@@ -50,17 +71,6 @@ window.addEventListener("load", function(){
         }
      });
                         
-                    
-
-
-
-
-    
-    function drawMap() {
-        ctx.drawImage(currentMap.img, 0, 0);
-    
-}
-
 // controllo collisioni
 function drawHitboxes(ctx) {
     // cicliamo tutti gli oggetti della mappa corrente
@@ -78,6 +88,18 @@ function drawHitboxes(ctx) {
         ctx.lineWidth = 2;
         ctx.strokeRect(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width, enemy.hitbox.height)
         ctx.restore()
+        if(enemy.ginoAtkHbox){
+            ctx.save();
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(
+                enemy.ginoAtkHbox.x,
+                enemy.ginoAtkHbox.y,
+                enemy.ginoAtkHbox.width,
+                enemy.ginoAtkHbox.height,
+            )
+            ctx.restore();
+        }
     })
 
     ctx.save();
@@ -122,8 +144,47 @@ function debugAggroRange (ctx){
     })
 }
 
-    
+     function drawEntities(ctxEntities, deltatime, camera){
+        ctxEntities.clearRect(0, 0, entities.width, entities.height )
+          
 
+        currentMap.objects
+        .filter(obj => obj.layer === "below")
+        .forEach( obj => { 
+            obj.draw(ctxEntities, deltatime)
+            obj.collisionsObjects(player)
+            obj.checkHit(player)
+
+            if(obj instanceof Eye){
+                obj.getdistance(player)
+            }
+        });
+
+           player.draw(ctxEntities, deltatime);
+
+        currentMap.objects
+        .filter(obj => obj.layer === "above")
+        .forEach(obj => {
+           obj.draw(ctxEntities, deltatime)
+           obj.collisionsObjects(player)
+           obj.checkHit(player)
+        })
+
+        currentMap.enemies.forEach(enemy => {
+            enemy.draw(ctxEntities, deltatime)
+            enemy.updateEnemy(player, deltatime)
+            enemy.collisions(player)
+            enemy.checkHit(player)
+        });
+                   
+            camera.apply(ctxEntities);
+        
+        }
+function triggers(){
+    currentMap.triggers.forEach(trigger => {
+        trigger.triggerDetection(player)
+    })
+}
     ////ora che abbiamo la logica degli input, la aggiungiamo qui con un nuova istanza (new):
     const input = new InputHandler();
 
@@ -132,55 +193,28 @@ function debugAggroRange (ctx){
     // lastTIme che sarà il valore di timestamp dal loop precedente;
     ///il timestamp è un API fornita dal browser come il math e setInterval, gestito nativamente da JS
     let lastTime= 0;
-
-    //////creiamo la funzione per l'animazione al cui interno usiamo il metodo requestAnimationFrame(); 
     function animate(timeStamp){
+        if(!assetsLoaded){
+            requestAnimationFrame(animate)
+            return
+        } 
         ctx.clearRect( 0,0, canvas.width, canvas.height);
         //quindi diventa time stamp di questo loop meno il time stamp del loop precedente;
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp; 
-        //qua chiamiamo la funzione per l'input upate,  e li passiamo lastkey da input.js:
-        drawMap();
-        updateMap(player);
-        currentMap.objects.forEach(obj => {
-            
-            obj.draw(ctx, deltaTime)
-            obj.collisionsObjects(player)
-            // obj.hp = obj.maxHp;
-            obj.checkHit(player)
-            if(obj instanceof Eye){
-                obj.getdistance(player)
-            }
-            hp.textContent=`${obj.hp}`
-        });
-     
-        currentMap.enemies.forEach(enemy => {
-            enemy.draw(ctx, deltaTime)
-           
-            // enemy.enemyDistancefromPlayer(player.x, player.y, enemy.x, enemy.y)
-            enemy.updateEnemy(player, deltaTime)
-            enemy.collisions(player)
-            enemy.checkHit(player)
-           
-        })
+        drawMap(ctx, camera);
         drawHitboxes(ctx); // disegno le hitbox sopra
         debugAggroRange(ctx)
-        camera.follow(player);
-        camera.apply(ctx);
-        
         player.update(input.lastKey);
-        //aggiungiamo a player la funzione draw, e come argomento il contesto 2d; va messo qua dentro perchè se no clearReact lo cancellerebbe dopo un frame
-        ////aggiungiamo anche il deltatime a player.draw, come argomento; dobbiamo essere sicuri che anche il draw in player.js aspetti quell'argomento e aggiungiamo variabili nell'istanza player in player.js
-        player.draw(ctx, deltaTime);
-        // drawStatusText(ctx, input, player);
-        // console.log(input.lastKey); //con questo vediamo gli input come descritti
+        drawEntities(ctxEntities, deltaTime, camera)
+        camera.apply(ctx)
+        camera.follow(player);
         collision(player);
+        triggers()
+        console.log(player.x)
         requestAnimationFrame(animate)
     };
-
-    // ctx.scale(scale, scale)
-    camera.setZoom(4); // 2x ingrandimento
-    //mettiamo 0 perchè requestAnimationFrames, auto genera dal secondo loop
-    animate(0);
+    camera.setZoom(4); 
+    startGame()
 })
 

@@ -9,7 +9,9 @@ const prompts =  {
         doors: {
             doorSud: new Image(),
             doorEst: new Image(),
+            doorOvest: new Image(),
         },
+        candle : new Image(),
         
     }
 
@@ -19,13 +21,15 @@ prompts.vase.src = "assets/vase.png"
 prompts.treasure.src = "assets/treasure.png"
 prompts.doors.doorSud.src = "assets/doorFrontSud.png"
 prompts.doors.doorEst.src = "assets/doorSideLeft.png"
+prompts.doors.doorOvest.src = "assets/doorSideRight.png"
 prompts.frame.src= "assets/eye.png"
+prompts.candle.src ="assets/candle.png"
 
 
 
 
 export default class Assets { //assets non va evocato perchè astratto, le estensioni si!
-    constructor(x, y, width, height, sprite, ){
+    constructor(x, y, width, height, sprite, layer ){
         this.x = x; //posizione
         this.y = y;
         this.width = width; // grandezza, quanto disegno, devo separarlo dall'hitbox
@@ -35,10 +39,7 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
         this.frameY = 0;
         this.hp = 0; //definiti per ogni prompt
         this.fps = 0;
-
- 
-        
-       
+        this.layer = layer;      
     }
     draw(ctx, deltaTime){
         if (this.frameTimer > this.frameInterval) {
@@ -77,11 +78,26 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
                 height: this.h* this.offsetH ,       
         }
         this.isClosing= false
-        if(this.isLooking) {this.startAnimation += deltaTime
-            console.log(this.startAnimation)
-        }
-        }
+       }
+       if (this instanceof Eye) {
+         if (this.isLooking) {
+            if (this.firstLook) {
+                this.frameY = 0;     
+                this.frameX = 0;
+                this.maxFrame = 4;
+                this.firstLook = false;
+            }
+            if (this.frameX >= this.maxFrame) {
+                this.frameX = 0;
+                this.frameY = Math.floor(Math.random() * 4);
+            }
             
+        } else {
+            this.frameX = 0;
+            this.frameY = 0;
+            this.maxFrame = 0;
+            this.firstLook = true
+        }}
             
         ctx.drawImage(this.sprite, this.width * this.frameX, this.height * this.frameY , this.width, this.height, this.x, this.y, this.w, this.h );
     }
@@ -90,7 +106,7 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
         const left = this.hitbox.x;
         const right = this.hitbox.x + this.hitbox.width;
         const top = this.hitbox.y;
-        const  bottom = this.y + this.hitbox.height;
+        const  bottom = this.hitbox.y + this.hitbox.height;
         ///dentro al rettangolo
         const insideLeft = this.shape.x;
         const insideRight = this.shape.x + this.shape.width;
@@ -173,7 +189,7 @@ export class Tree extends Assets {
 
 export class Eye extends Assets {
     constructor(x,y){
-        super(x, y, 64, 64, prompts.frame)
+        super(x, y, 64, 64, prompts.frame, "below")
         this.w = 64,
         this.h= 64,
         this.hitbox = {
@@ -186,21 +202,26 @@ export class Eye extends Assets {
         //animazione
         this.frameX= 0;
         // this.frameY = 0;
-        this.maxFrame = 5;
+        this.maxFrame = 0;
         this.frameTimer= 0;
-        this.fps = 8;
+        this.fps = 7;
         this.frameInterval = 1000/this.fps;
         //timer per cambio animazione
         this.startAnimation = 0;
         this.isLooking= false;
-        this.proximity = 100;
-        
+        this.proximity = 80;
+        this.distance = null;
     }
     getdistance(player){
      const vX = player.x - this.x;
      const vY = player.y - this.y;
      const distance = Math.hypot(vX, vY)
-     if(distance < this.proximity) this.isLooking = true
+     if(distance < this.proximity){
+         this.isLooking = true   
+     } else {
+        this.isLooking = false
+     }
+     
     }
 
 
@@ -208,11 +229,11 @@ export class Eye extends Assets {
 
 export class Vase extends Assets {
     constructor(x,y){
-        super(x, y, 64, 63, prompts.vase)
+        super(x, y, 64, 63, prompts.vase, "above")
         this.w = 16
         this.h = 16
         this.offsetX = 4;
-        this.offsetY = 0;
+        this.offsetY = 5;
         this.offsetW = 0.5
         this.offsetH = 1;
          this.hitbox = {
@@ -249,10 +270,30 @@ export class Vase extends Assets {
 
 }
 
+export class Candle extends Assets{
+    constructor(x, y){
+        super(x, y, 7, 16, prompts.candle, "below")
+        this.w = 7,
+        this.h = 16,
+             this.hitbox = {
+            x: 0,      
+            y: 0,
+            width: 0,
+            height: 0,
+        }
+        this.shape = {...this.hitbox}
+        this.frameTimer = 0
+        this.fps = 4;
+        this.maxFrame = 2
+        this.frameInterval = 1000/this.fps;
+        // this.frameX=0;
+    }
+}
+
 class Interactable extends Assets {
     
-    constructor(x, y, width, height, sprite,) {
-        super(x, y, width, height, sprite,);
+    constructor(x, y, width, height, sprite, layer) {
+        super(x, y, width, height, sprite, layer);
         this.canInteract = false;
         this.animationActive = false; //flag inizio animazioe
         this.isClosing = false; //flag per chiudere
@@ -283,12 +324,31 @@ export class Door extends Interactable {
         this.frameTimer = 0; 
         this.canInteract = false; //questa serve per la prossimità
         this.frameInterval = 1000/this.fps;
+        
 
         if (type === "frontSud"){
             this.sprite = prompts.doors.doorSud
-             
+             this.layer = "above"
             this.offsetX = 16;
-            this.offsetY = 16;
+            this.offsetY = 17;
+            this.offsetW = 0.5
+            this.offsetH = 0.5;
+            this.hitbox = {
+            x: x + this.offsetX,      
+            y: y + this.offsetY,
+            width: this.w * this.offsetW,
+            height: this.h * this.offsetH,
+        }
+            this.shape = {...this.hitbox} //faccio una copia tanto sono uguali
+            
+            this.insideShade = false;
+        }
+        ///questa è l'unica che va disegnata dietro al player
+        if (type === "frontNord"){
+            this.sprite = prompts.doors.doorSud
+             this.layer = "below"
+            this.offsetX = 16;
+            this.offsetY = 17;
             this.offsetW = 0.5
             this.offsetH = 0.5;
             this.hitbox = {
@@ -297,25 +357,40 @@ export class Door extends Interactable {
             width: this.w * this.offsetW,
             height: this.h * this.offsetH,
         }
-            this.shape = {...this.hitbox} //faccio una copia tanto sono uguali
-            console.log(this.shape)
+            this.shape = {...this.hitbox} 
+            
             this.insideShade = false;
         }
         if(type === "sideEst"){
             this.sprite = prompts.doors.doorEst
-             
+             this.layer = "above"
             this.offsetX = 16;
             this.offsetY = 8;
             this.offsetW = 0.1
             this.offsetH = 0.7;
             this.hitbox = {
-                x: x + this.offsetX,      // margine interno
+                x: x + this.offsetX,     
                 y: y + this.offsetY,
                 width: this.w * this.offsetW,
                 height: this.h * this.offsetH,
         }
-            this.shape = {...this.hitbox} //faccio una copia tanto sono uguali
-            console.log(this.shape)
+            this.shape = {...this.hitbox} 
+            this.insideShade = false;
+        }
+        if(type === "sideOvest"){
+            this.sprite = prompts.doors.doorOvest
+            this.layer = "above" 
+            this.offsetX = 42;
+            this.offsetY = 5;
+            this.offsetW = 0.1;
+            this.offsetH = 0.7;
+            this.hitbox = {
+                x: x + this.offsetX,      
+                y: y + this.offsetY,
+                width: this.w * this.offsetW,
+                height: this.h * this.offsetH,
+        }
+            this.shape = {...this.hitbox} 
             this.insideShade = false;
         }
         this.state =  [this.frameX = 0,this.maxFrame= 0, this.frameY=0]
@@ -332,7 +407,7 @@ export class Door extends Interactable {
 
 export class Treasure extends Interactable {
     constructor (x,y){
-        super(x, y, 64, 64, prompts.treasure)
+        super(x, y, 64, 64, prompts.treasure, "below")
         this.w = 16;
         this.h = 16;
         this.frameX = 0;

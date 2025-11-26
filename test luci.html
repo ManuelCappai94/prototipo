@@ -1,0 +1,181 @@
+
+!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test doppio canvas + luce</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .game-wrapper {
+      position: relative;
+      width: 640px;
+      height: 360px;
+      image-rendering: pixelated;
+      border: 2px solid #555;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #gameCanvas {
+      z-index: 1;
+    }
+
+    #fxCanvas {
+      z-index: 2;
+      pointer-events: none; /* così non blocca input se poi li aggiungi */
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrapper">
+    <canvas id="gameCanvas" width="640" height="360"></canvas>
+    <canvas id="fxCanvas" width="640" height="360"></canvas>
+  </div>
+
+  <!-- PixiJS per il layer FX -->
+  <script src="https://pixijs.download/release/pixi.min.js"></script>
+
+  <script>
+    // === SETTINGS BASE ===
+    const WIDTH = 640;
+    const HEIGHT = 360;
+
+    // === CANVAS 2D (background + player + torcia) ===
+    const gameCanvas = document.getElementById("gameCanvas");
+    const gctx = gameCanvas.getContext("2d");
+
+    // finto "player" e "torcia"
+    let playerX = WIDTH / 2;
+    let playerY = HEIGHT / 2;
+
+    // la torcia sta un po' sopra il player (tipo in mano)
+    let torchOffsetX = 0;
+    let torchOffsetY = -20;
+
+    // === PIXIJS PER FX (overlay luce) ===
+    const fxCanvas = document.getElementById("fxCanvas");
+
+    const app = new PIXI.Application({
+      view: fxCanvas,
+      width: WIDTH,
+      height: HEIGHT,
+      transparent: true,
+      antialias: false
+    });
+
+    // layer scuro sopra tutto
+    const darkness = new PIXI.Graphics();
+    darkness.beginFill(0x000000, 0.8); // nero semi-trasparente
+    darkness.drawRect(0, 0, WIDTH, HEIGHT);
+    darkness.endFill();
+    app.stage.addChild(darkness);
+
+    // maschera per la luce (un cerchio bianco)
+    const lightMask = new PIXI.Graphics();
+    lightMask.beginFill(0xffffff);
+    lightMask.drawCircle(0, 0, 80); // raggio della luce
+    lightMask.endFill();
+
+    // usiamo lightMask come mask dell'overlay scuro
+    darkness.mask = lightMask;
+    app.stage.addChild(lightMask);
+
+    // === INPUT SEMPLICE: muovo il player con le frecce ===
+    const keys = {};
+    window.addEventListener("keydown", e => {
+      keys[e.key] = true;
+    });
+    window.addEventListener("keyup", e => {
+      keys[e.key] = false;
+    });
+
+    function updatePlayer(dt) {
+      const speed = 120; // px/sec
+      const step = speed * dt;
+
+      if (keys["ArrowUp"] || keys["w"]) playerY -= step;
+      if (keys["ArrowDown"] || keys["s"]) playerY += step;
+      if (keys["ArrowLeft"] || keys["a"]) playerX -= step;
+      if (keys["ArrowRight"] || keys["d"]) playerX += step;
+
+      // limiti schermo
+      if (playerX < 0) playerX = 0;
+      if (playerY < 0) playerY = 0;
+      if (playerX > WIDTH) playerX = WIDTH;
+      if (playerY > HEIGHT) playerY = HEIGHT;
+    }
+
+    function drawBaseScene() {
+      // sfondo
+      gctx.fillStyle = "#202030";
+      gctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // griglia finta per vedere il movimento
+      gctx.strokeStyle = "#2e2e40";
+      gctx.lineWidth = 1;
+      for (let x = 0; x < WIDTH; x += 32) {
+        gctx.beginPath();
+        gctx.moveTo(x, 0);
+        gctx.lineTo(x, HEIGHT);
+        gctx.stroke();
+      }
+      for (let y = 0; y < HEIGHT; y += 32) {
+        gctx.beginPath();
+        gctx.moveTo(0, y);
+        gctx.lineTo(WIDTH, y);
+        gctx.stroke();
+      }
+
+      // player
+      gctx.fillStyle = "#ffcc66";
+      gctx.fillRect(playerX - 8, playerY - 12, 16, 24);
+
+      // torcia (piccolo cerchio arancione)
+      const torchX = playerX + torchOffsetX;
+      const torchY = playerY + torchOffsetY;
+      gctx.beginPath();
+      gctx.fillStyle = "#ff9933";
+      gctx.arc(torchX, torchY, 5, 0, Math.PI * 2);
+      gctx.fill();
+    }
+
+    // === LOOP ===
+    let lastTime = performance.now();
+
+    function loop(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // aggiorno logica
+      updatePlayer(dt);
+
+      // ridisegno background + player + torcia sul canvas base
+      gctx.clearRect(0, 0, WIDTH, HEIGHT);
+      drawBaseScene();
+
+      // aggiorno posizione luce nella scena Pixi: segue la torcia
+      const torchX = playerX + torchOffsetX;
+      const torchY = playerY + torchOffsetY;
+      lightMask.position.set(torchX, torchY);
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

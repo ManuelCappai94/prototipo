@@ -5,26 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prototipo</title>
     <style>
-        /* creiamo il contesto per tutta la pagina, e per lo scenario */
+       
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            /* background-color: black; */
         }
-        /* impediamo al contenuto di superare il limite del body */
+       
         body {
             overflow: hidden;
+            background-color: black;
         }
         img {
             display: none;
         }
-        #gameScenario {
-            
-            
-            top: 0; 
+
+        #game-container{
+            position: relative;
+          
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
             left: 0;
-         
-         }
+        
+            /* image-rendering: pixelated; */
+        }
+        
          #loading {
             position: absolute;
             top: 50%;
@@ -40,8 +49,13 @@
     </style>
 </head>
 <body>
-    <canvas id="gameScenario" ></canvas>
-    <!-- aggiungo gli assets che vogglio siano caricati per primi  -->
+    <div id="game-container">
+        <canvas id="gameScenario" ></canvas>
+        <canvas id="layer-entities-objects"></canvas>
+        <canvas id="layer-fx"></canvas>
+        <canvas id="layer-hud"></canvas>
+    </div>
+    <!-- aggiungo gli assets che voglio siano caricati per primi  -->
      <img id="playerSprite" src="main/player.png">
      <h1 id="loading"> CARICAMENTO </h1>
     <h2 class="hp"></h2>

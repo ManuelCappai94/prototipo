@@ -1,16 +1,22 @@
 //disegnamo il player qui; creremo un costruttore con le classi
 import { tileSize } from "./camera.js";
 
-import { IdleBack, IdleFront, IdleLeft, IdleRight, RunningBack, RunningFront, RunningLeft, RunningRight, AttackBack, AttackFront, AttackLeft, AttackRight} from "./state.js";
+import { IdleBack, IdleFront, IdleLeft, IdleRight, RunningBack, RunningFront, RunningLeft, RunningRight, AttackBack, AttackFront, AttackLeft, AttackRight, Death} from "./state.js";
 
 export default class Player {
     //player dovrà sapere quando raggiunge i limiti della mappa quindi li passiamo la larghezza e altezza, e con this creiamo tutte le proprietà da attribuirli, visibili con un console.log
     constructor(gameWidth, gameHeight){
+        const storedPosition = JSON.parse(localStorage.getItem("player position"))
+        
+       const storedX = storedPosition? storedPosition.x : null
+       const  storedY = storedPosition? storedPosition.y : null
+               
+      
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
         //creiamo l'array che contiene i vari states, idle , running ecc; 
         ////passare come argomento this, gli farà fare riferimento all'intera class player
-        this.states = [new IdleBack(this), new IdleFront(this), new IdleLeft(this), new IdleRight(this), new RunningBack(this), new RunningFront(this), new RunningLeft(this), new RunningRight(this), new AttackBack(this), new AttackFront(this), new AttackLeft(this), new AttackRight(this)]; 
+        this.states = [new IdleBack(this), new IdleFront(this), new IdleLeft(this), new IdleRight(this), new RunningBack(this), new RunningFront(this), new RunningLeft(this), new RunningRight(this), new AttackBack(this), new AttackFront(this), new AttackLeft(this), new AttackRight(this), new Death(this)]; 
         // creiamo current state perchè player può essere in uno state alla volta
         this.currentState = this.states[1];
         this.image = document.getElementById("playerSprite");
@@ -21,8 +27,8 @@ export default class Player {
         this.w = tileSize*2;
         this.h = tileSize*2;
         //posizione iniziale player
-        this.x = tileSize * 38;
-        this.y = tileSize * 43;
+        this.x =  storedX? storedX : tileSize * 38;
+        this.y =  storedY? storedY: tileSize * 42;
         /////////////hitbox player, cosi non vengono aggoirnate, meglio scriverle nel getter, prima le avevo scritte qui, ma il valore era legato ad this.x, e gli offset non si aggiornavano
             this.offsetX = 12;
             this.offsetY = 8;
@@ -39,12 +45,17 @@ export default class Player {
         this.speedx = 0;
         this.speedy = 0;
         this.tileSize = tileSize;
-        this.maxSpeed =  tileSize* 0.05;
+        this.maxSpeed =  2;
         ///variabili collegate a deltaTime
         this.fps = 8;
         this.frameTimer = 0;
         this.frameInterval = 1000/this.fps; //1000 ms divisi per gli fps
+        this.playerHp = 100;
+        this.isDeath = false;
     }
+    // get playerHp (){
+    //     return 100
+    // }
     get hitbox(){
         return {
                 x: this.x + this.offsetX,      
@@ -53,8 +64,13 @@ export default class Player {
                 height: this.h * this.offsetH,
         }
     }
-
-    
+    get centerX(){
+        return this.x + this.w * 0.5
+    }
+     get centerY(){
+        return this.y + this.h * 0.5;
+    }
+        
     ///////////////creiamo la funzione per il disegno//////////////////////////
     ////delta time è stato aggiunto solo dopo che abbiamo aggiunto la funzione; ha bisgono di altre 3 variabili per funzionare, fps, una variabile timer che incrementerà finche non raggiunge un certo valore, e una variabile che decide il valore che vogliamo raggiunga;
     draw(context, deltaTime) {
@@ -83,9 +99,19 @@ export default class Player {
 
     setState(state) {
         //che prende come riferimento "this.currentState = this.states[0];" e this.states = []; che per ora è vuoto;
+        
         this.currentState = this.states[state];
+        if(this.playerHp <= 0) {
+            this.currentState = this.states[12]
+            this.maxFrame = 7;
+            this.isDeath= true;
+        }
+        
+
+        
         //associamo a currentState enter che swapperà tra i frame
         this.currentState.enter();
+        
     }
 }
 
