@@ -1,6 +1,6 @@
 //disegnamo il player qui; creremo un costruttore con le classi
 import { tileSize } from "./camera.js";
-import { Door, HiddenDoor } from "./assets.js";
+import { Door, HiddenDoor, Keys } from "./assets.js";
 
 export default class Player {
 
@@ -48,10 +48,9 @@ export default class Player {
         this.lastDirection = "down" //la inizializzo per poi passarla agli idol
 
         //test inventario
-        this.inventory = [
-             "biblioteca", "torture_chamber", "personnel", "rooms"
-        ]
-        
+        this.inventory = JSON.parse(localStorage.getItem("inventory")) || []
+        //messages
+        this.deathMessageShown = false
     }
     get hitbox(){
         return {
@@ -201,6 +200,12 @@ export default class Player {
                 if(obj.canInteract && obj instanceof HiddenDoor){
                 obj.openHidden()
                 console.log("muro aperto")}
+                if(obj.canInteract && obj instanceof Keys && !this.isCollected){
+                    obj.collectskeys()
+                    obj.createMessage()
+                   
+                    console.log(this.inventory)
+                }
             })
     }
     //non deve stare nel gameLoop, evento singolo
@@ -279,6 +284,13 @@ export default class Player {
             this.isDeath = true
             this.maxSpeed = 0
         }
+  
+        if (this.isDeath && !this.deathMessageShown) {
+        this.createMessage();
+        this.deathMessageShown = true;
+    }
+
+
         if(this.isDeath && this.frameX >= this.maxFrame){
            this.frameX = 7
             this.maxFrame = 0
@@ -286,6 +298,28 @@ export default class Player {
         }
       
     }
+        createMessage(){
+            const textContainer = document.querySelector(".text-container")
+            
+            const div = document.createElement("div")
+            div.classList.add("avvisi")
+            const message = document.createElement("span")
+            message.classList.add("text")
+           
+
+            if(window.innerHeight > window.innerWidth){
+                message.textContent = `YOU DIED ! press reset to start a new game`
+            } else {
+                message.textContent = `YOU DIED ! press p to start a new game`
+            }
+            
+            div.appendChild(message)
+            textContainer.appendChild(div)
+            
+        
+
+        }
+
 
     update(input, action, deltatime){
         

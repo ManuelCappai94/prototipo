@@ -14,7 +14,8 @@ const prompts =  {
         candle : new Image(),
         barrel : new Image(),
         candelbra : new Image(),
-        hiddenWall : new Image(),        
+        hiddenWall : new Image(),  
+        key: new Image(),      
     }
 
 
@@ -29,6 +30,7 @@ prompts.candle.src ="assets/candle.png"
 prompts.hiddenWall.src = "assets/hiddenWall.png"
 prompts.candelbra.src = "assets/candlebra.png"
 prompts.barrel.src = "assets/barrel.png"
+prompts.key.src = "assets/key.png"
 
 
 
@@ -149,7 +151,6 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
             this.insideShade = false
         }
         
-     
     }
 
 
@@ -313,6 +314,7 @@ class Interactable extends Assets {
         if(this.isKeyRequired){
             if (!player.inventory?.includes(this.keyType)) {
             console.log("Ti serve una chiave!");
+            this.createMessage()
             return
         } }
 
@@ -327,7 +329,29 @@ class Interactable extends Assets {
             console.log(this.isKeyRequired)
         }   
        }
-        
+           createMessage(){
+            const textContainer = document.querySelector(".text-container")
+            const duplicate = [...textContainer.children].some(el => el.textContent === message)
+            if(duplicate) return
+            
+            const div = document.createElement("div")
+            div.classList.add("avvisi")
+            const message = document.createElement("span")
+            message.classList.add("text")
+            if(this instanceof Door){
+                message.textContent = `it's closed, you can read ${this.keyType} on the doorplate`
+            }
+            if(this instanceof Keys){
+                message.textContent = `Great! you picked the ${this.type} key!`
+            }
+            
+            div.appendChild(message)
+            textContainer.appendChild(div)
+                setTimeout(() => {
+                div.remove();
+            }, 3000);
+
+        }
     
 }
 
@@ -416,7 +440,7 @@ export class Door extends Interactable {
         this.isOpen = false //flag chiusura apertura
         
     }
-
+ 
 
 }
 
@@ -487,8 +511,181 @@ export class Treasure extends Interactable {
          this.frameX = 1
         this.maxFrame = 0;
         this.canInteract = false;
+
     }
 
+}
+export class Keys extends Interactable {
+    constructor(x,y, type){
+        super(x, y, 32, 32, prompts.key, "below", false)
+        this.w = 32;
+        this.h = 32;
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.offsetW = 0.6
+        this.offsetH = 0.5;
+        this.type = type
+        if(type ==="personnel"){
+            const storedKey = JSON.parse(localStorage.getItem("personeelKey"))
+            console.log(storedKey)
+            if(storedKey){
+                this.hitbox = storedKey.hitbox
+                this.frameY = storedKey.frameY
+                this.isCollected = storedKey.isCollected
+                this.shape = {...this.hitbox}
+             } else {
+                this.hitbox = {
+                x: x + this.offsetX,      // margine interno
+                y: y + this.offsetY,
+                width: this.w * this.offsetW,
+                height: this.h * this.offsetH,
+                },
+                this.canInteract = false,
+                this.shape = {...this.hitbox},
+                this.isCollected = false
+             }
+        }
+        if(type === "library"){
+            const libraryKey = JSON.parse(localStorage.getItem("libraryKey"))
+            
+            if(libraryKey){
+                this.hitbox = libraryKey.hitbox
+                this.frameY = libraryKey.frameY
+                this.isCollected = libraryKey.isCollected
+                this.shape = {...this.hitbox}
+             } else {
+                this.hitbox = {
+                x: x + this.offsetX,      // margine interno
+                y: y + this.offsetY,
+                width: this.w * this.offsetW,
+                height: this.h * this.offsetH,
+                },
+                this.canInteract = false,
+                this.shape = {...this.hitbox},
+                this.isCollected = false
+             }
+        }
+        if(type === "rooms"){
+            const roomsKey = JSON.parse(localStorage.getItem("roomsKey"))
+            
+            if(roomsKey){
+                this.hitbox = roomsKey.hitbox
+                this.frameY = roomsKey.frameY
+                this.isCollected = roomsKey.isCollected
+                this.shape = {...this.hitbox}
+             } else {
+                this.hitbox = {
+                x: x + this.offsetX,      // margine interno
+                y: y + this.offsetY,
+                width: this.w * this.offsetW,
+                height: this.h * this.offsetH,
+                },
+                this.canInteract = false,
+                this.shape = {...this.hitbox},
+                this.isCollected = false
+             }
+        }
+        if(type === "torture_chamber"){
+            const tortureKey = JSON.parse(localStorage.getItem("torture_chamber"))
+            
+            if(tortureKey){
+                this.hitbox = tortureKey.hitbox
+                this.frameY = tortureKey.frameY
+                this.isCollected = tortureKey.isCollected
+                this.shape = {...this.hitbox}
+             } else {
+                this.hitbox = {
+                x: x + this.offsetX,      // margine interno
+                y: y + this.offsetY,
+                width: this.w * this.offsetW,
+                height: this.h * this.offsetH,
+                },
+                this.canInteract = false,
+                this.shape = {...this.hitbox},
+                this.isCollected = false
+             }
+        }
+    
+    }
+
+    collectskeys(){
+        let inventory = [];
+        if(this.type === "library" && this.canInteract && !this.isCollected ){ 
+            this.isCollected = true
+            this.frameY = 1
+            this.hitbox = {x:0, y:0, width:0, height:0}
+            inventory = JSON.parse(localStorage.getItem("inventory")) || []
+            inventory.push(this.type)
+            
+            localStorage.setItem("inventory", JSON.stringify(inventory))
+            this.keyCollected()
+            
+        }
+        if(this.type === "personnel" && this.canInteract && !this.isCollected ){ 
+            this.isCollected = true
+            this.frameY = 1
+            this.hitbox = {x:0, y:0, width:0, height:0}
+            inventory = JSON.parse(localStorage.getItem("inventory")) || []
+            inventory.push(this.type)
+            localStorage.setItem("inventory", JSON.stringify(inventory))
+            this.keyCollected()
+            
+        }
+        if(this.type === "rooms" && this.canInteract && !this.isCollected ){ 
+            this.isCollected = true
+            this.frameY = 1
+            this.hitbox = {x:0, y:0, width:0, height:0}
+            inventory = JSON.parse(localStorage.getItem("inventory")) || []
+            inventory.push(this.type)
+            localStorage.setItem("inventory", JSON.stringify(inventory))
+            this.keyCollected()
+           
+        }
+        if(this.type === "torture_chamber" && this.canInteract && !this.isCollected ){ 
+            this.isCollected = true
+            this.frameY = 1
+            this.hitbox = {x:0, y:0, width:0, height:0}
+            inventory = JSON.parse(localStorage.getItem("inventory")) || []
+            inventory.push(this.type)
+            localStorage.setItem("inventory", JSON.stringify(inventory))
+            this.keyCollected()
+            
+        }
+    }
+    keyCollected(){
+        if(this.isCollected && this.type === "library"){
+            const savedLibrary ={
+                isCollected : true, 
+                frameY : 1,
+                hitbox : {x:0, y:0, width:0, height:0}
+            }
+            localStorage.setItem("libraryKey", JSON.stringify(savedLibrary))
+        }
+        if(this.isCollected && this.type === "personnel"){
+            const savedPersoneel ={
+                isCollected : true, 
+                frameY : 1,
+                hitbox : {x:0, y:0, width:0, height:0}
+            }
+            localStorage.setItem("personeelKey", JSON.stringify(savedPersoneel))
+        }
+        if(this.isCollected && this.type === "rooms"){
+            const savedRooms ={
+                isCollected : true, 
+                frameY : 1,
+                hitbox : {x:0, y:0, width:0, height:0}
+            }
+            localStorage.setItem("roomsKey", JSON.stringify(savedRooms))
+        }
+        if(this.isCollected && this.type === "torture_chamber"){
+            const savedTorture ={
+                isCollected : true, 
+                frameY : 1,
+                hitbox : {x:0, y:0, width:0, height:0}
+            }
+            localStorage.setItem("torture_chamber", JSON.stringify(savedTorture))
+        }
+    }
 }
 
 export class Destructable extends Assets {

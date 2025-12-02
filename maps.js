@@ -1,6 +1,6 @@
 
 import { tileSize} from "./camera.js";
-import { Vase, Treasure, Door, Eye, Candle, HiddenDoor, Candlebra, Barrel} from "./assets.js";
+import { Vase, Treasure, Door, Eye, Candle, HiddenDoor, Candlebra, Barrel , Keys} from "./assets.js";
 import {Gino} from "./enemies.js"
 import {TriggerMap, sudWestHall, xCorridorKitchen, WestHall1, xKitchen, xCorridorKitchen2, xRoomChildreen, WestHall2, CorridRooms, xLoverRoom, xdiningRoom, xNordCorridor, xBiblio, xEastCorridorBiblio, xTortureChamber, EastCorridor, xEmptyRoom, xEastCorridor2} from "./triggers.js";
 
@@ -31,7 +31,7 @@ const maps = [
          new Vase(21*16, 39*16 ),
         
          //se necessitano chiavi metto true
-         new Door(70*16, 20*16, "frontSud", true, "biblioteca"),
+         new Door(70*16, 20*16, "frontSud", true, "library"),
          new Door(2*16, 34*16, "frontSud", true, "personnel"),
          new Door(56*16, 6*16, "frontSud", false),
          new Door(67*16, 36*16, "sideEst", true, "torture_chamber"), 
@@ -152,10 +152,17 @@ const maps = [
         //vase
         new Vase(93*16, 30*16),
         new Vase(93*16, 37*16),
+         //keys
+         new Keys(103*16, 15*16, "personnel"),
+         new Keys(56*16, 14*16, "library"),
+         new Keys(10*16, 36*16, "rooms"),
+         new Keys(17*16, 8*16, "torture_chamber"),
        ],
         enemies: [
         new Gino (45*16, 29*16),
        ]
+      
+
 }]
 
 

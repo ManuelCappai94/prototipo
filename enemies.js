@@ -67,8 +67,8 @@ export default class Enemies {
             atkHitbox.y < this.hitbox.y + this.hitbox.height  &&
             atkHitbox.y + atkHitbox.height  > this.hitbox.y
         ){
-            this.damage(25);
-            camera.shake(50, 1)
+            this.damage(20);
+            camera.shake(35, 1)
         }
         }
     if(enHitbox){
@@ -77,8 +77,8 @@ export default class Enemies {
             enHitbox.y < player.hitbox.y + player.hitbox.height &&
             enHitbox.y + enHitbox.height > player.hitbox.y
         ){
-            this.damageToPlayer(35, player)
-            camera.shake(30, 5)
+            this.damageToPlayer(40, player)
+            camera.shake(30, 3)
         }
         }
      
