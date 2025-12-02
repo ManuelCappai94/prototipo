@@ -1,4 +1,6 @@
 import Player from "./player.js";
+import { tileSize } from "./camera.js";
+
 
 
 const enemies ={
@@ -32,7 +34,8 @@ export default class Enemies {
             } 
         ctx.drawImage(this.sprite, this.width * this.frameX, this.height * this.frameY , this.width, this.height, this.x, this.y, this.w, this.h );
     }
-    collisions (player ){
+    collisions (player, deltatime){
+         const dt = deltatime/1000;
         const left = this.hitbox.x;
         const right = this.hitbox.x + this.hitbox.width;
         const top = this.hitbox.y;
@@ -43,17 +46,17 @@ export default class Enemies {
         const playerbottom = player.hitbox.y + player.hitbox.height;
      
         if ( playerleft < right && playerright > left && playerbottom > top && playertop < bottom) {
-        if (player.speedx > 0) player.x -= player.speedx; 
-        if (player.speedx < 0) player.x -= player.speedx; // sta andando a sinistra
-        if (player.speedy > 0) player.y -= player.speedy; // sta andando giù
-        if (player.speedy < 0) player.y -= player.speedy; // sta andando su
-        if (this.dirX > 0) this.x -= this.dirX * 0.5 //il numero non deve essere troppo piccolo perchè se no si rompe
-        if (this.dirX < 0) this.x -= this.dirX * 0.5
-        if (this.dirY > 0) this.y -= this.dirY * 0.5
-        if (this.dirY < 0 ) this.y -= this.dirY * 0.5
+        if (player.speedx > 0) player.x -= player.speedx *dt; 
+        if (player.speedx < 0) player.x -= player.speedx *dt; // sta andando a sinistra
+        if (player.speedy > 0) player.y -= player.speedy *dt; // sta andando giù
+        if (player.speedy < 0) player.y -= player.speedy *dt; // sta andando su
+        if (this.dirX > 0) this.x -= this.dirX * dt ;
+        if (this.dirX < 0) this.x -= this.dirX * dt
+        if (this.dirY > 0) this.y -= this.dirY * dt
+        if (this.dirY < 0 ) this.y -= this.dirY * dt
         // console.log(this.dirX)
     }}
-    checkHit(player){
+    checkHit(player, camera){
             const atkHitbox = player.attackHitbox;
             const enHitbox = this.ginoAtkHbox
         // if(!atkHitbox || !enHitbox)return;
@@ -65,7 +68,7 @@ export default class Enemies {
             atkHitbox.y + atkHitbox.height  > this.hitbox.y
         ){
             this.damage(25);
-            console.log(this.hp)
+            camera.shake(50, 1)
         }
         }
     if(enHitbox){
@@ -75,7 +78,7 @@ export default class Enemies {
             enHitbox.y + enHitbox.height > player.hitbox.y
         ){
             this.damageToPlayer(35, player)
-            console.log(player.playerHp)
+            camera.shake(30, 5)
         }
         }
      
@@ -108,7 +111,7 @@ export class Gino extends Enemies {
     constructor(x, y){
         super(x, y, 96, 96, enemies.gino, false, 140,  220)
         this.w = 64;
-        this.h =64;
+        this.h = 64;
         //animation
         // this.frameX = 0;
         this.fps = 8;
@@ -117,7 +120,7 @@ export class Gino extends Enemies {
         //movement
         this.speedx = 0;
         this.speedy = 0;
-        this.maxSpeeed = 0.06;
+        this.maxSpeeed = 7 * tileSize;
         this.spawnX = this.x;
         this.spawnY = this.y;
         this.returnToIdle = 70 // più è alto più rallenta
@@ -141,7 +144,7 @@ export class Gino extends Enemies {
         this.offsetW = 0.3;
         /// enemy behaviour
         this.hp = 80;
-        this.coolDown = 1000 //ms     
+        this.coolDown = 500 //ms     
         this.attackTimer = 0
         this.canAttackAgain = true;
         this.animationlenght = 0
@@ -218,11 +221,8 @@ export class Gino extends Enemies {
         case "attack_left":
             this.frameY = 13;
             this.maxFrame = 8;
-            
-            break;
-        
+            break; 
        }
-
     }
     //calcolo distanza //
     enemyDistancefromPlayer(ax, ay, bx, by){
@@ -257,6 +257,7 @@ export class Gino extends Enemies {
     }
 
     enemyMovment(deltaTime){
+        const dt = deltaTime/1000;
         if(this.aggro){
             if(this.distance < this.arriveRadius ) return
             if(this.isAttacking) {
@@ -265,8 +266,8 @@ export class Gino extends Enemies {
             }
 
                 this.isMoving = true;
-                this.x += this.dirX * this.maxSpeeed * deltaTime;
-                this.y += this.dirY * this.maxSpeeed * deltaTime;
+                this.x += this.dirX * this.maxSpeeed * dt;
+                this.y += this.dirY * this.maxSpeeed * dt;
                 this.state = this.dirX > 0? "move_right" : "move_left" 
               
             
@@ -275,9 +276,10 @@ export class Gino extends Enemies {
 
 
     enemyReturnToBase(deltaTime){
+        const dt = deltaTime/1000;
           if(this.isMoving && this.distance > 150){
-                this.x += this.spawnDirX * this.maxSpeeed* deltaTime
-                this.y += this.spawnDirY * this.maxSpeeed * deltaTime
+                this.x += this.spawnDirX * this.maxSpeeed * dt
+                this.y += this.spawnDirY * this.maxSpeeed * dt
                 this.state = this.dirX < 0? "move_right" : "move_left";    
                 if(this.spawnDistance < 5){
                     this.isMoving = false;

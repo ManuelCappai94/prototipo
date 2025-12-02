@@ -12,7 +12,9 @@ const prompts =  {
             doorOvest: new Image(),
         },
         candle : new Image(),
-        
+        barrel : new Image(),
+        candelbra : new Image(),
+        hiddenWall : new Image(),        
     }
 
 
@@ -24,12 +26,15 @@ prompts.doors.doorEst.src = "assets/doorSideLeft.png"
 prompts.doors.doorOvest.src = "assets/doorSideRight.png"
 prompts.frame.src= "assets/eye.png"
 prompts.candle.src ="assets/candle.png"
+prompts.hiddenWall.src = "assets/hiddenWall.png"
+prompts.candelbra.src = "assets/candlebra.png"
+prompts.barrel.src = "assets/barrel.png"
 
 
 
 
 export default class Assets { //assets non va evocato perchè astratto, le estensioni si!
-    constructor(x, y, width, height, sprite, layer ){
+    constructor(x, y, width, height, sprite, layer, isDesctruble ){
         this.x = x; //posizione
         this.y = y;
         this.width = width; // grandezza, quanto disegno, devo separarlo dall'hitbox
@@ -39,7 +44,8 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
         this.frameY = 0;
         this.hp = 0; //definiti per ogni prompt
         this.fps = 0;
-        this.layer = layer;      
+        this.layer = layer; 
+        this.isDesctruble = isDesctruble     
     }
     draw(ctx, deltaTime){
         if (this.frameTimer > this.frameInterval) {
@@ -49,8 +55,7 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
             } else { this.frameTimer += deltaTime; 
             }
         if(this.animationActive) {
-                    this.aniamtionTimer += deltaTime; //tengo traccia dall'apertura della porta
-                   
+                    this.aniamtionTimer += deltaTime; //tengo traccia dall'apertura della porta      
         }
         if (this.animationActive && this.frameX >= this.maxFrame){
                     // this.animationActive = false;
@@ -90,19 +95,26 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
             if (this.frameX >= this.maxFrame) {
                 this.frameX = 0;
                 this.frameY = Math.floor(Math.random() * 4);
-            }
-            
-        } else {
+            } } else {
             this.frameX = 0;
             this.frameY = 0;
             this.maxFrame = 0;
             this.firstLook = true
         }}
+        if(this instanceof HiddenDoor){
+            if(this.isOpen && this.frameX >= this.maxFrame){
+                this.maxFrame = 0
+                this.frameTimer = 0
+                this.frameX = 10
+                this.hitbox = {x:0, y:0, width:0, height:0}
+            }
+        }
             
         ctx.drawImage(this.sprite, this.width * this.frameX, this.height * this.frameY , this.width, this.height, this.x, this.y, this.w, this.h );
     }
 
-    collisionsObjects(player, enemy){ //questo viene chimato nel loop di gioco assieme a draw;
+    collisionsObjects(player, deltatime){ //questo viene chimato nel loop di gioco assieme a draw;
+        const dt = deltatime/1000;
         const left = this.hitbox.x;
         const right = this.hitbox.x + this.hitbox.width;
         const top = this.hitbox.y;
@@ -119,14 +131,14 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
         const playerbottom = player.hitbox.y + player.hitbox.height;
         //check collisione rettangoli
         if ( playerleft < right && playerright > left &&playerbottom > top && playertop <bottom) {
-           if (player.speedx > 0) player.x -= player.speedx; 
+           if (player.speedx > 0) player.x -= player.speedx *dt; 
            //player.x è la posizione orizzontale del player.
             //Se fai player.x -= player.speedx, stai sottraendo la velocità alla posizione, cioè lo sposti indietro.
            //Se il player si muove a destra (speedx > 0) e collide, devi spostarlo indietro della stessa quantità che si sarebbe mosso, altrimenti finirebbe dentro l’oggetto.
             //Se invece stesse andando a sinistra (speedx < 0), faresti player.x -= player.speedx → visto che speedx è negativo, sottrarre un negativo fa +, quindi lo sposti indietro anche verso sinistra.
-        if (player.speedx < 0) player.x -= player.speedx; // sta andando a sinistra
-        if (player.speedy > 0) player.y -= player.speedy; // sta andando giù
-        if (player.speedy < 0) player.y -= player.speedy; // sta andando su
+        if (player.speedx < 0) player.x -= player.speedx *dt; // sta andando a sinistra
+        if (player.speedy > 0) player.y -= player.speedy *dt; // sta andando giù
+        if (player.speedy < 0) player.y -= player.speedy *dt; // sta andando su
             this.canInteract = true; //flag prossimità
             }else {
                 this.canInteract = false;
@@ -136,34 +148,25 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
         } else {
             this.insideShade = false
         }
+        
      
     }
 
 
-   damage(amount) {
-    if (this.hp <= 0) return; // già rotto, ignora
-    this.hp -= amount;
-    let newState;
-    if(this.hp <= 0){
-        this.hp = 0;
-          this.changeState(newState); // ← qui fai partire animazione o sprite del vaso rotto
-    }
 
-
-      
-    
-   
-}
-    checkHit(player) {
+    checkHit(player, camera) {
         const hitbox = player.attackHitbox;
         if(!hitbox)return;
 
        if ( hitbox.x <  this.hitbox.x + this.hitbox.width && 
             hitbox.x + hitbox.width > this.hitbox.x &&
-            hitbox.y < this.y + this.hitbox.height &&
+            hitbox.y < this.hitbox.y + this.hitbox.height &&
             hitbox.y + hitbox.height > this.hitbox.y
     ){
-        this.damage(2);
+        if(this.isDesctruble){
+            this.damage(2);
+        }
+         camera.shake(10, 4)
     }
         
     }
@@ -173,7 +176,7 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
 
 export class Tree extends Assets {
     constructor(x, y){
-        super(x, y, 115, 128, prompts.tree);
+        super(x, y, 115, 128, prompts.tree, false);
          this.frameX = 0;
          this.frameY=  0;
          this.w = 64
@@ -189,7 +192,7 @@ export class Tree extends Assets {
 
 export class Eye extends Assets {
     constructor(x,y){
-        super(x, y, 64, 64, prompts.frame, "below")
+        super(x, y, 64, 64, prompts.frame, "below", false)
         this.w = 64,
         this.h= 64,
         this.hitbox = {
@@ -227,52 +230,11 @@ export class Eye extends Assets {
 
 }
 
-export class Vase extends Assets {
-    constructor(x,y){
-        super(x, y, 64, 63, prompts.vase, "above")
-        this.w = 16
-        this.h = 16
-        this.offsetX = 4;
-        this.offsetY = 5;
-        this.offsetW = 0.5
-        this.offsetH = 1;
-         this.hitbox = {
-            x: x + this.offsetX,      // margine interno
-            y: y + this.offsetY,
-            width: this.w * this.offsetW,
-            height: this.h * this.offsetH,
-        }
-        this.shape = {...this.hitbox}
 
-       
-        ////essenziali per l'animazione
-        this.fps = 8;
-        this.frameTimer = 0; 
-        this.maxFrame = 6; // 7
-        this.frameInterval = 1000/this.fps;
-        this.hp = 100;
-        this.state = [this.frameX = 0,this.frameY = 0, this.maxFrame = 0 ]
-     
-    }
-
-    changeState(newState){
-       
-        newState = [this.frameX = 0,this.frameY = 1, this.maxFrame = 6 ];
-        this.state = newState;
-        setTimeout(() =>{
-             newState = [this.frameX = 0,this.frameY = 2, this.maxFrame = 0 ];
-             this.state = newState;
-             this.hitbox = {x:0, y:0, width:0, height:0}
-        },850)
-  
-    }
- 
-
-}
 
 export class Candle extends Assets{
-    constructor(x, y){
-        super(x, y, 7, 16, prompts.candle, "below")
+    constructor(x, y ){
+        super(x, y, 7, 16, prompts.candle, "below", false)
         this.w = 7,
         this.h = 16,
              this.hitbox = {
@@ -286,22 +248,74 @@ export class Candle extends Assets{
         this.fps = 4;
         this.maxFrame = 2
         this.frameInterval = 1000/this.fps;
-        // this.frameX=0;
+        //// luce
+        this.isLightSource = true;
+        this.lightInner = 40;
+        this.lightOuter = 60;
+        this.pulsetimer = 0
+        // l'area anche se casuale deve essere un cerchio
+    }
+    randomLight(deltatime){
+        this.pulsetimer += deltatime
+        if(this.pulsetimer >= 250){
+            this.lightInner = 40 + Math.floor(Math.random()*3)
+            this.lightOuter = 60 + Math.floor(Math.random()*2)
+            this.pulsetimer = 0
+        }
+   
+    }
+}
+export class Candlebra extends Assets{
+    constructor(x, y){
+        super(x, y, 11, 14, prompts.candelbra, "below", false)
+        this.w = 11,
+        this.h = 14,
+             this.hitbox = {
+            x: 0,      
+            y: 0,
+            width: 0,
+            height: 0,
+        }
+        this.shape = {...this.hitbox}
+        this.frameTimer = 0
+        this.fps = 4;
+        this.maxFrame = 3
+        this.frameInterval = 1000/this.fps;
+        ////luce
+         this.isLightSource = true;
+          this.lightInner = 25;
+        this.lightOuter = 40;
+        this.pulsetimer = 0
+    }
+  randomLight(deltatime){
+        this.pulsetimer += deltatime
+        if(this.pulsetimer >= 300){
+            this.lightInner = 25 + Math.floor(Math.random()*3)
+            this.lightOuter = 40 + Math.floor(Math.random()*2)
+            this.pulsetimer = 0
+        }
+   
     }
 }
 
 class Interactable extends Assets {
     
     constructor(x, y, width, height, sprite, layer) {
-        super(x, y, width, height, sprite, layer);
+        super(x, y, width, height, sprite, layer, false);
         this.canInteract = false;
         this.animationActive = false; //flag inizio animazioe
         this.isClosing = false; //flag per chiudere
        
       
     }
-    interactDoor() {
-       
+    interactDoor(player) {
+      if(!this.canInteract) return
+        if(this.isKeyRequired){
+            if (!player.inventory?.includes(this.keyType)) {
+            console.log("Ti serve una chiave!");
+            return
+        } }
+
         if(this.canInteract && !this.isOpen ){
           this.frameX = 0;
           this.frameY = 0;
@@ -310,13 +324,16 @@ class Interactable extends Assets {
           this.isOpen = true;
           this.animationActive = true;
             this.aniamtionTimer = 0; //punto iniziale, per calcolare la differenza tra inizio animazione e timestamp attuale. 
+            console.log(this.isKeyRequired)
         }   
-    } 
+       }
+        
+    
 }
 
 export class Door extends Interactable {
     
-    constructor(x, y, type){
+    constructor(x, y, type, isKeyRequired, keyType){
         super(x, y, 64, 64)
         this.w = 64;
         this.h = 64; 
@@ -324,6 +341,8 @@ export class Door extends Interactable {
         this.frameTimer = 0; 
         this.canInteract = false; //questa serve per la prossimità
         this.frameInterval = 1000/this.fps;
+        this.isKeyRequired = isKeyRequired;
+        this.keyType = keyType;
         
 
         if (type === "frontSud"){
@@ -350,7 +369,7 @@ export class Door extends Interactable {
             this.offsetX = 16;
             this.offsetY = 17;
             this.offsetW = 0.5
-            this.offsetH = 0.5;
+            this.offsetH = 0.25;
             this.hitbox = {
             x: x + this.offsetX,      // margine interno
             y: y + this.offsetY,
@@ -397,23 +416,63 @@ export class Door extends Interactable {
         this.isOpen = false //flag chiusura apertura
         
     }
+
+
 }
 
  // con performance.now(), calcolo il tempo che passa dall'avvio dell'applicazione al momento il cui faccio scattare il trigger. deriva dal TIMESTAMP globale, lo stesso che noi utilizziamo nella funzione del timestamp.
 
 
-
+export class HiddenDoor extends Interactable {
+    constructor (x, y){
+        super (x, y, 128, 128, prompts.hiddenWall, "below", false)
+        this.w = 128
+        this.h = 128
+      
+        this.offsetX = 32;
+        this.offsetY = 41.5;
+        this.offsetW = 0.5;
+        this.offsetH = 0.3;
+         this.hitbox = {
+            x: x + this.offsetX,     
+            y: y + this.offsetY,
+            width: this.w * this.offsetW,
+            height: this.h * this.offsetH,
+        }
+        this.canInteract = false; 
+        this.shape = {...this.hitbox}
+        //animation
+        this.frameX = 0
+        this.frameY = 0
+        this.frameTimer = 0
+        this.maxFrame = 0
+        this.fps = 8;
+        this.frameInterval = 0
+        //states
+        this.isOpen = false;
+                
+    }
+    openHidden(){
+        if(this.canInteract && !this.isOpen){
+             this.isOpen = true
+             this.frameInterval = 1000/this.fps
+             this.frameX = 0
+             this.maxFrame = 10
+            
+        }
+    }
+}
 
 
 export class Treasure extends Interactable {
     constructor (x,y){
-        super(x, y, 64, 64, prompts.treasure, "below")
-        this.w = 16;
-        this.h = 16;
+        super(x, y, 64, 64, prompts.treasure, "below", false)
+        this.w = 32;
+        this.h = 32;
         this.frameX = 0;
-        this.offsetX = 4;
-        this.offsetY = 3;
-        this.offsetW = 0.5
+        this.offsetX = 6;
+        this.offsetY = 6;
+        this.offsetW = 0.6
         this.offsetH = 0.5;
          this.hitbox = {
             x: x + this.offsetX,      // margine interno
@@ -432,6 +491,84 @@ export class Treasure extends Interactable {
 
 }
 
-const eye = new Eye
+export class Destructable extends Assets {
+    constructor(x, y, width, height, sprite, layer) {
+        super(x, y, width, height, sprite, layer, true);
 
-console.log(eye.isLooking)
+}
+     damage(amount) {
+    if (this.hp <= 0) return; // già rotto, ignora
+    this.hp -= amount;
+    if(this.hp <= 0){
+        this.hp = 0;
+         
+    }
+}
+changeState(){
+    if(this.hp <= 0){
+       
+        this.maxFrame = this.totalFrames
+        if(this.frameX >= this.maxFrame) {
+            this.frameTimer = 0
+            this.frameX = this.totalFrames
+            this.hitbox = { x:0, y:0, width:0, height:0}
+        }
+    }
+  
+    }
+
+}
+
+export class Vase extends Destructable {
+    constructor(x,y){
+        super(x, y, 64, 63, prompts.vase, "above", true)
+        this.w = 16
+        this.h = 16
+        this.offsetX = 4;
+        this.offsetY = 5;
+        this.offsetW = 0.5
+        this.offsetH = 0.7;
+         this.hitbox = {
+            x: x + this.offsetX,      // margine interno
+            y: y + this.offsetY,
+            width: this.w * this.offsetW,
+            height: this.h * this.offsetH,
+        }
+        this.shape = {...this.hitbox}
+        ////essenziali per l'animazione
+        this.fps = 8;
+        this.frameTimer = 0; 
+        this.frameInterval = 1000/this.fps;
+        this.hp = 100;
+        this.state = [this.frameX = 0,this.frameY = 0, this.maxFrame = 0 ];
+        this.aniamationLenght = 0;
+        this.totalFrames = 5 //valore che passo aframex, e maxframe
+    }
+   
+        }
+export class Barrel extends Destructable{
+    constructor(x,y){
+        super(x, y, 64, 64, prompts.barrel, "above", true)
+        this.w = 64;
+        this.h = 64;
+        this.offsetX = 24;
+        this.offsetY = 29;
+        this.offsetW = 0.25;
+        this.offsetH = 0.3;
+         this.hitbox = {
+            x: x + this.offsetX,      // margine interno
+            y: y + this.offsetY,
+            width: this.w * this.offsetW,
+            height: this.h * this.offsetH,
+        }
+        this.shape = {...this.hitbox}
+        //animation
+        this.fps = 8;
+        this.frameTimer = 0;
+        this.frameInterval = 1000/this.fps;
+        this.hp = 100;
+        this.state = [this.frameX = 0,this.frameY = 0, this.maxFrame = 0 ];
+        this.aniamationLenght = 0;
+        this.totalFrames = 4;
+    }
+}

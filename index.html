@@ -16,22 +16,44 @@
         body {
             overflow: hidden;
             background-color: black;
+            touch-action: none; /* previene scroll e zoom accidentali */
+            user-select: none;  /* niente selection accidentale */
+      
+        }
+
+        body.rotate {
+            transform: rotate(90deg);
+            transform-origin: center center;
+             width: 100vh; 
+             height: 100vw; 
+            overflow: hidden;
+            position: absolute;
+            top:40%;
+            left: 0;
         }
         img {
             display: none;
         }
 
-        #game-container{
-            position: relative;
-          
-        }
-
-        canvas {
-            position: absolute;
+        #game-container {
+            /* position: fixed;
             top: 0;
-            left: 0;
-        
-            /* image-rendering: pixelated; */
+            left: 0; */
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+           
+}
+
+        #game-container canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
         
          #loading {
@@ -46,6 +68,61 @@
             top: 80px;
             border: 2px solid black;
          }
+         @media screen and (max-width: 900px) {
+            #touch-controls {
+            position: fixed;
+            z-index: 9999;
+            top: 45vh;
+            left:10%;
+            transform: translateX(-30%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%;
+            gap: 2vh;
+        }
+        #pad{
+            display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+        }
+        #touch-controls button {
+            width: 8vh;
+            height: 8vh;
+            font-size: 5vh;
+            border-radius: 50px;
+            opacity: 0.8;
+            backdrop-filter: blur(4px);
+            background-color: transparent;
+            color: blanchedalmond;
+        }
+            #btn-up {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+            #btn-left {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            #btn-right {
+                grid-column: 3;
+                grid-row: 2;
+            }
+
+            #btn-down {
+                grid-column: 2;
+                grid-row: 3;
+            }
+            #action-btns{
+          
+                
+            }
+
+         }
+
+  
     </style>
 </head>
 <body>
@@ -54,6 +131,18 @@
         <canvas id="layer-entities-objects"></canvas>
         <canvas id="layer-fx"></canvas>
         <canvas id="layer-hud"></canvas>
+    </div>
+    <div id="touch-controls">
+        <aside id="pad">
+            <button id="btn-left">&#9664;</button>
+            <button id="btn-up">&#9650;</button>
+            <button id="btn-right">&#9654;</button>
+            <button id="btn-down">&#9660;</button>
+        </aside>
+        <aside id="action-btns">
+            <button id="btn-attack">&#9876;</button>
+            <button id="btn-interact">&#128273;</button>
+        </aside>
     </div>
     <!-- aggiungo gli assets che voglio siano caricati per primi  -->
      <img id="playerSprite" src="main/player.png">

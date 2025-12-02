@@ -1,66 +1,104 @@
-//qui creiamo la logica degli input, stavolta useremo una class e dei costruttori, la logica verrà strutturata in modo tale da poter aggiungere e rimuovere tutti i commandi che si vuole
+//per adesso vado ad hardcodare gli input, ma questi quando 
+// implemento un menù opzioni diventeranno variabili selezionabili
+export const input = {
+    move_up: "w",
+    move_down: "s",
+    move_left: "a",
+    move_right: "d",
+    attack: "Space",
+    dodge: "shift",
+    parry: "e",
+    interact: "f"
+}
+
+const btnLeft = document.getElementById("btn-left");
+const btnRight = document.getElementById("btn-right");
+const btnUp = document.getElementById("btn-up");
+const btnDown = document.getElementById("btn-down");
+const btnAttack = document.getElementById("btn-attack");
+const btnInteract = document.getElementById("btn-interact");
+
 
 
 
 export default class InputHandler {
     constructor(){
-        //questo valore verrà aggiornato ogni volta, all'interno di esso vengono storati i valori provenienti dai vari case;
-        this.lastKey = " ";
-        //guardando nel log per e, vediamo come ha una proprietà key, che registra l'input cliccato; usiamo il switch statement, per creare diversi states; invece delle funzioni normali, usiamo le arrow perchè hanno una speciale particolarità, ovvero che tengono lo scope della funzione dentro al codice della funzione stassa; quindi si evita di dover bindare il valore ogni volta; usare l'arrow permette ad ogni case di targhettizzare ogni volta il this.lastkey = "" property;
+        this.action = {
+            [input.move_up]: false,
+            [input.move_down]: false,
+            [input.move_left]: false,
+            [input.move_right]: false,
+            [input.attack]: false,
+            [input.dodge]: false,
+            [input.parry]: false,
+            [input.interact]:false,
 
+        }
+      
         window.addEventListener("keydown", (e) => {
-        //    e.preventDefault();
-        // console.log(e.key)
-            switch(e.key) {
-                case "w":
-                    this.lastKey ="press w";
-                    break
-                case "s": 
-                    this.lastKey = "press s";
-                    break
-                case "a":
-                    this.lastKey ="press a";
-                    break
-                case "d": 
-                    this.lastKey = "press d";
-                    break
-                case "e" :
-                    this.lastKey= "press e";
-                    break
-                case "f" :
-                    this.lastKey = "press f"
-            }
-        });
-        window.addEventListener("keyup", (e)=> {
-            // e.preventDefault();
-            switch(e.key) {
-                case "w":
-                    this.lastKey ="relase w";
-                    break
-                case "s": 
-                    this.lastKey = "relase s";
-                    break
-                case "a":
-                    this.lastKey ="relase a";
-                    break
-                case "d": 
-                    this.lastKey = "relase d";
-                    break
-                case "e" :
-                    this.lastKey= "relase e";
-                    break
-            }
-        });
-        // window.addEventListener("mousedown", (e) => {
-        //     e.preventDefault();
-        //     switch(e.button) {
-        //         case "mouse left":
-        //             this.lastKey = "mouse left";
-        //             break
-        //     }
-        // })
+        if (e.key.toLowerCase() in this.action) this.action[e.key.toLowerCase()] = true
+         if(e.code in this.action) this.action[e.code] = true
         
-    }
-}
+       
+    });
+
+        window.addEventListener("keyup", (e)=> {
+            // e.preventDefault() 
+        if (e.key.toLowerCase() in this.action)  this.action[e.key.toLowerCase()] = false
+        if(e.code in this.action) this.action[e.code] = false
+
+    })
+
+   btnLeft.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    this.action[input.move_left] = true;
+    });
+    btnLeft.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        this.action[input.move_left] = false;
+    });
+    btnLeft.addEventListener("touchcancel", () => {
+        this.action[input.move_left] = false;
+    });
+
+
+    btnRight.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        this.action[input.move_right] = true;
+    });
+    btnRight.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        this.action[input.move_right] = false;
+    });
+    btnRight.addEventListener("touchcancel", () => {
+        this.action[input.move_right] = false;
+    });
+
+
+    btnUp.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        this.action[input.move_up] = true;
+    });
+    btnUp.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        this.action[input.move_up] = false;
+    });
+    btnUp.addEventListener("touchcancel", () => {
+        this.action[input.move_up] = false;
+    });
+
+
+    btnDown.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        this.action[input.move_down] = true;
+    });
+    btnDown.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        this.action[input.move_down] = false;
+    });
+    btnDown.addEventListener("touchcancel", () => {
+        this.action[input.move_down] = false;
+    });
+}}
 
 

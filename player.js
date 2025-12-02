@@ -1,24 +1,16 @@
 //disegnamo il player qui; creremo un costruttore con le classi
 import { tileSize } from "./camera.js";
-
-import { IdleBack, IdleFront, IdleLeft, IdleRight, RunningBack, RunningFront, RunningLeft, RunningRight, AttackBack, AttackFront, AttackLeft, AttackRight, Death} from "./state.js";
+import { Door, HiddenDoor } from "./assets.js";
 
 export default class Player {
-    //player dovrà sapere quando raggiunge i limiti della mappa quindi li passiamo la larghezza e altezza, e con this creiamo tutte le proprietà da attribuirli, visibili con un console.log
+
     constructor(gameWidth, gameHeight){
         const storedPosition = JSON.parse(localStorage.getItem("player position"))
         
        const storedX = storedPosition? storedPosition.x : null
        const  storedY = storedPosition? storedPosition.y : null
-               
-      
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
-        //creiamo l'array che contiene i vari states, idle , running ecc; 
-        ////passare come argomento this, gli farà fare riferimento all'intera class player
-        this.states = [new IdleBack(this), new IdleFront(this), new IdleLeft(this), new IdleRight(this), new RunningBack(this), new RunningFront(this), new RunningLeft(this), new RunningRight(this), new AttackBack(this), new AttackFront(this), new AttackLeft(this), new AttackRight(this), new Death(this)]; 
-        // creiamo current state perchè player può essere in uno state alla volta
-        this.currentState = this.states[1];
         this.image = document.getElementById("playerSprite");
         //settiamo le dimensioni per ogni frame dello spriteSheet e la posizione iniziale; per la dimensione in sprite tengo la misura in px, per la posizione uso i tile
         this.width = 128;
@@ -34,28 +26,33 @@ export default class Player {
             this.offsetY = 8;
             this.offsetW = 0.3;
             this.offsetH = 0.5;
-       
         //creiamo la posizione del frame x e y che poi assegniamo a draw per fargli capire quale disegnare
         this.frameX= 0;
         this.frameY = 0;
-        this.maxFrame = 5;//questo valore puo essere aggiustato nello states per ogni azione
-        //queste velocità controllano la velocità, andranno poi usate  dentro i metodi enter
-        
-        // in states.js
+        this.maxFrame = 5;
+       //movement
         this.speedx = 0;
         this.speedy = 0;
         this.tileSize = tileSize;
-        this.maxSpeed =  2;
+        this.maxSpeed =  tileSize*8;
         ///variabili collegate a deltaTime
         this.fps = 8;
         this.frameTimer = 0;
         this.frameInterval = 1000/this.fps; //1000 ms divisi per gli fps
+        //states
+        this.isAttacking = false;
+       
         this.playerHp = 100;
         this.isDeath = false;
+        this.prevState = null; //mi serve per resettare le animazioni
+        this.lastDirection = "down" //la inizializzo per poi passarla agli idol
+
+        //test inventario
+        this.inventory = [
+             "biblioteca", "torture_chamber", "personnel", "rooms"
+        ]
+        
     }
-    // get playerHp (){
-    //     return 100
-    // }
     get hitbox(){
         return {
                 x: this.x + this.offsetX,      
@@ -70,7 +67,67 @@ export default class Player {
      get centerY(){
         return this.y + this.h * 0.5;
     }
-        
+    playerStates(){
+          if(this.state !== this.prevState){ //framex 0 ad ogni cambio di animazione
+            this.frameX = 0;
+            this.prevState = this.state
+        }
+
+        switch(this.state){
+            case "idleUp":
+                this.frameY = 6;
+                this.maxFrame = 4;
+                break
+            case "moveUp":
+                this.frameY = 7;
+                this.maxFrame = 5;
+                break
+            case "idleDown":
+                this.frameY = 0;
+                this.maxFrame = 5;
+                break
+            case "moveDown":
+                this.frameY = 1;
+                this.maxFrame = 5;
+                break
+            case "idleLeft":
+                this.frameY = 2;
+                this.maxFrame = 5;
+                break
+            case "moveLeft":
+                this.frameY = 3;
+                this.maxFrame = 5;
+                break
+            case "idleRight":
+                this.frameY = 4;
+                this.maxFrame = 5;
+                break
+            case "moveRight":
+                this.frameY = 5;
+                this.maxFrame = 5
+                break
+            case "death":
+                this.frameY = 13;
+                this.maxFrame = 7;
+                break
+            case "attackUp":
+                this.frameY = 9;
+                this.maxFrame = 4;
+                break
+            case "attackDown":
+                this.frameY = 8;
+                this.maxFrame = 4;
+                break
+            case "attackRight":
+                this.frameY = 11;
+                this.maxFrame = 4;
+                break
+            case "attackLeft":
+                this.frameY = 10;
+                this.maxFrame = 4;
+                break
+           }
+    }    
     ///////////////creiamo la funzione per il disegno//////////////////////////
     ////delta time è stato aggiunto solo dopo che abbiamo aggiunto la funzione; ha bisgono di altre 3 variabili per funzionare, fps, una variabile timer che incrementerà finche non raggiunge un certo valore, e una variabile che decide il valore che vogliamo raggiunga;
     draw(context, deltaTime) {
@@ -84,34 +141,163 @@ export default class Player {
     
         context.drawImage(this.image, this.width * this.frameX, this.height * this.frameY , this.width, this.height, this.x, this.y, this.w, this.h )
     }
-///////////////////qui crriamo la funzione che aggiornerà gl'input in base a quello che premiamo a cui passiamo handleInput che come argomento prendeva input, così puo fare il check per cosa è stato premuto
 
-    update(input){
-        this.currentState.handleInput(input);
-        // se esiste l'update, allora chiama la funzione update dentro state.js
-        if (this.currentState.update) this.currentState.update();
-        //aggiungiamo le velocità orizzontali e verticali
-        this.y += this.speedy;
-        this.x += this.speedx;
+    movePlayer(input, action, deltatime){
+        const dt = deltatime/1000
+        if(this.isAttacking) return
+
+        //importante che i valori di speedx e speedy siano resettati qua
+        this.speedx= 0;
+        this.speedy = 0;
+ 
+        if(input.action[action.move_up]) {
+            this.speedy = -this.maxSpeed;  
+            this.state = "moveUp"   
+            this.lastDirection = "Up" 
+        } 
+        if(input.action[action.move_down]) {
+            this.speedy = this.maxSpeed;
+          this.state = "moveDown"
+          this.lastDirection = "Down"
+        } 
+        if(input.action[action.move_left]) {
+            this.speedx = -this.maxSpeed;
+           this.state = "moveLeft"
+           this.lastDirection = "Left"
+        }  
+        if(input.action[action.move_right]) {
+            this.speedx = this.maxSpeed;
+            this.state = "moveRight"
+            this.lastDirection = "Right"
+        }
+
+        if( !input.action[action.move_up] && !input.action[action.move_down] && !input.action[action.move_left] && !input.action[action.move_right]) {
+            this.state = `idle${this.lastDirection}`
+        }
+        //devo normalizzare la diagonale perchè se no speedx e speedy si sommano in 
+        //|V| = √(speedX² + speedY²) teorema di pitagora, velocità totoale => ipotenusa
+        // per correggere la velocità devo normalizzare il vettore e portarlo alla stessa lunghezza di prima => 1 / √2 ≈ 0.707
+        
+        if (this.speedx !== 0 && this.speedy !== 0) {
+            const diagonalModifier = 1 / Math.sqrt(2);
+            this.speedx *= diagonalModifier;
+            this.speedy *= diagonalModifier;
+        }
+        
+        this.y += this.speedy * dt;
+        this.x += this.speedx * dt;
+    }
+
+    interactions( currentMap){
+            currentMap.objects.forEach(obj => {
+                if(obj.canInteract && typeof obj.openTreasure === "function" ){
+                    obj.openTreasure()
+                    console.log("ciao")
+                }
+                if(obj.canInteract && obj instanceof Door){
+                    obj.interactDoor(this)
+                    console.log("aperto")
+                }
+                if(obj.canInteract && obj instanceof HiddenDoor){
+                obj.openHidden()
+                console.log("muro aperto")}
+            })
+    }
+    //non deve stare nel gameLoop, evento singolo
+    startAttack(){
+        if(this.isAttacking || this.isDeath ) return
+            this.isAttacking = true
+    }
+    playerAttacks(){
+        if(this.isAttacking){
+             //non spam e non da morto
+            this.state = `attack${this.lastDirection}` //cosi prende la direzione giusta
+            this.maxSpeed = 0
+        }
+        
+        if(this.isAttacking && this.frameX >= this.maxFrame){
+            this.isAttacking = false;
+            this.state = `idle${this.lastDirection}`
+            this.maxSpeed= tileSize*8
+        }
+       
+        }
+    playerAttackHitbox(){
+        if(this.isAttacking){
+            if(this.state ===  "attackUp"){
+                if (this.frameX === 1 ) {
+                this.attackHitbox = {
+                    x: this.hitbox.x - 5,
+                    y: this.hitbox.y - 10 ,
+                    width: this.hitbox.width *2 ,
+                    height: this.hitbox.height * 0.6 ,
+                };
+            };
+            // Appena frame diverso, disattiva
+            if (this.frameX !== 1) {
+                this.attackHitbox = null;
+            }
+            } else if (this.state ==="attackDown"){
+                if (this.frameX === 1 ) {
+                this.attackHitbox = {
+                    x: this.hitbox.x - 5,
+                    y: this.hitbox.y + this.hitbox.height ,
+                    width: this.hitbox.width * 2  ,
+                    height: this.hitbox.height* 0.5,
+                };
+            };
+            if (this.frameX !== 1) this.attackHitbox = null;
+            }
+            else if (this.state ==="attackLeft"){
+                if (this.frameX === 1 ) {
+                this.attackHitbox = {
+                    x: this.hitbox.x - this.hitbox.width,
+                    y: this.hitbox.y,
+                    width: this.hitbox.width ,
+                    height: this.hitbox.height,
+                };
+            };
+            if (this.frameX !== 1) this.attackHitbox = null;
+            }
+            else if (this.state ==="attackRight"){
+                if (this.frameX === 1 ) {
+                this.attackHitbox = {
+                    x: this.hitbox.x + this.hitbox.width,
+                    y: this.hitbox.y,
+                    width: this.hitbox.width ,
+                    height: this.hitbox.height,
+                };
+            };
+            if (this.frameX !== 1) this.attackHitbox = null;
+            }
+            
+        }
+    }
+    playerDeath(){
+        if(this.playerHp <= 0) {
+            this.state = "death"
+            this.isDeath = true
+            this.maxSpeed = 0
+        }
+        if(this.isDeath && this.frameX >= this.maxFrame){
+           this.frameX = 7
+            this.maxFrame = 0
+            this.frameTimer = 0 
+        }
+      
+    }
+
+    update(input, action, deltatime){
+        
+        this.movePlayer(input, action, deltatime)
+        this.playerAttacks()
+        this.playerAttackHitbox()
+        this.playerDeath()
+
+        this.playerStates()
+        
        
     }
     
-
-    setState(state) {
-        //che prende come riferimento "this.currentState = this.states[0];" e this.states = []; che per ora è vuoto;
-        
-        this.currentState = this.states[state];
-        if(this.playerHp <= 0) {
-            this.currentState = this.states[12]
-            this.maxFrame = 7;
-            this.isDeath= true;
-        }
-        
-
-        
-        //associamo a currentState enter che swapperà tra i frame
-        this.currentState.enter();
-        
-    }
 }
 
