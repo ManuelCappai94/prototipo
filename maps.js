@@ -26,9 +26,7 @@ const maps = [
          new Vase(30*16, 26*16 ),
          new Vase(30*16, 24*16 ),
          new Vase(30*16, 23*16 ),
-         new Vase(52*16, 4*16 ),
-         new Vase(11*16, 10*16 ),
-         new Vase(21*16, 39*16 ),
+         
         
          //se necessitano chiavi metto true
          new Door(70*16, 20*16, "frontSud", true, "library"),

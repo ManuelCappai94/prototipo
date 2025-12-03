@@ -91,7 +91,7 @@ reset.addEventListener("touchend", (e) =>{
 
 function drawTorchLight(ctxFx, camera, deltaTime){
     ctxFx.clearRect(0, 0, layerFx.width, layerFx.height)
-    ctxFx.fillStyle = "rgba(0, 0, 0, 0.55)"
+    ctxFx.fillStyle = "rgba(0, 0, 0, 0.65)"
     ctxFx.fillRect(0, 0, layerFx.width, layerFx.height);
     // camera.apply(ctxFx);
     ctxFx.globalCompositeOperation = "destination-out";
@@ -123,84 +123,84 @@ function drawTorchLight(ctxFx, camera, deltaTime){
     
   ////////////////////debug///////////////////////////////////                      
 // controllo collisioni
-function drawHitboxes(ctx) {
-    // cicliamo tutti gli oggetti della mappa corrente
-    currentMap.objects.forEach(obj => {
-        ctx.save(); // salviamo lo stato del canvas
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)'; // rosso semi-trasparente
-        ctx.lineWidth = 2;
-        // disegniamo un rettangolo nella posizione dell'oggetto
-        ctx.strokeRect(obj.hitbox.x, obj.hitbox.y, obj.hitbox.width, obj.hitbox.height);
-        ctx.restore(); // ripristiniamo lo stato del canvas
-    });
-    currentMap.enemies.forEach(enemy => {
-        ctx.save();
-        ctx.strokeStyle ="rgba(255, 0, 0, 0.6)"
-        ctx.lineWidth = 2;
-        ctx.strokeRect(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width, enemy.hitbox.height)
-        ctx.restore()
-        if(enemy.ginoAtkHbox){
-            ctx.save();
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(
-                enemy.ginoAtkHbox.x,
-                enemy.ginoAtkHbox.y,
-                enemy.ginoAtkHbox.width,
-                enemy.ginoAtkHbox.height,
-            )
-            ctx.restore();
-        }
-    });
-    currentMap.triggers.forEach(trigger => {
-        ctx.save()
-        ctx.strokeStyle = 'rgba(229, 236, 25, 0.91)'
-        ctx.lineWidth = 2;
-        ctx.strokeRect(trigger.detectionArea.x, trigger.detectionArea.y, trigger.detectionArea.width, trigger.detectionArea.height )
-        ctx.restore()
-    })
+// function drawHitboxes(ctx) {
+//     // cicliamo tutti gli oggetti della mappa corrente
+//     currentMap.objects.forEach(obj => {
+//         ctx.save(); // salviamo lo stato del canvas
+//         ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)'; // rosso semi-trasparente
+//         ctx.lineWidth = 2;
+//         // disegniamo un rettangolo nella posizione dell'oggetto
+//         ctx.strokeRect(obj.hitbox.x, obj.hitbox.y, obj.hitbox.width, obj.hitbox.height);
+//         ctx.restore(); // ripristiniamo lo stato del canvas
+//     });
+//     currentMap.enemies.forEach(enemy => {
+//         ctx.save();
+//         ctx.strokeStyle ="rgba(255, 0, 0, 0.6)"
+//         ctx.lineWidth = 2;
+//         ctx.strokeRect(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width, enemy.hitbox.height)
+//         ctx.restore()
+//         if(enemy.ginoAtkHbox){
+//             ctx.save();
+//             ctx.strokeStyle = "red";
+//             ctx.lineWidth = 2;
+//             ctx.strokeRect(
+//                 enemy.ginoAtkHbox.x,
+//                 enemy.ginoAtkHbox.y,
+//                 enemy.ginoAtkHbox.width,
+//                 enemy.ginoAtkHbox.height,
+//             )
+//             ctx.restore();
+//         }
+//     });
+//     currentMap.triggers.forEach(trigger => {
+//         ctx.save()
+//         ctx.strokeStyle = 'rgba(229, 236, 25, 0.91)'
+//         ctx.lineWidth = 2;
+//         ctx.strokeRect(trigger.detectionArea.x, trigger.detectionArea.y, trigger.detectionArea.width, trigger.detectionArea.height )
+//         ctx.restore()
+//     })
 
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)'; // rosso semi-trasparente
-    ctx.lineWidth = 1;
-    ctx.strokeRect(
-        player.hitbox.x,
-        player.hitbox.y,
-         player.hitbox.width,
-         player.hitbox.height,
-    );
-    if (player.attackHitbox) {
-    ctx.save();
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(
-        player.attackHitbox.x,
-        player.attackHitbox.y,
-        player.attackHitbox.width,
-        player.attackHitbox.height
-    );
-    ctx.restore();
-}
-        ctx.restore(); // ripristiniamo lo stato del canvas
-}
+//     ctx.save();
+//     ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)'; // rosso semi-trasparente
+//     ctx.lineWidth = 1;
+//     ctx.strokeRect(
+//         player.hitbox.x,
+//         player.hitbox.y,
+//          player.hitbox.width,
+//          player.hitbox.height,
+//     );
+//     if (player.attackHitbox) {
+//     ctx.save();
+//     ctx.strokeStyle = "red";
+//     ctx.lineWidth = 2;
+//     ctx.strokeRect(
+//         player.attackHitbox.x,
+//         player.attackHitbox.y,
+//         player.attackHitbox.width,
+//         player.attackHitbox.height
+//     );
+//     ctx.restore();
+// }
+//         ctx.restore(); // ripristiniamo lo stato del canvas
+// }
 
-function debugAggroRange (ctx){
-    currentMap.enemies.forEach(enemy => {
-        ctx.save()
-        ctx.strokeStyle= enemy.aggro ? "rgba(0, 13, 255, 0.62)": "rgba(7, 222, 7, 0.9)"
-        ctx.lineWidth = 2;
-        ctx.beginPath()
-        ctx.arc(
-            enemy.centerX,
-            enemy.centerY,
-            enemy.aggro ?  enemy.deAggro : enemy.aggroArea,
-            0,
-             Math.PI*2)
-             ctx.stroke()
-             ctx.restore()
+// function debugAggroRange (ctx){
+//     currentMap.enemies.forEach(enemy => {
+//         ctx.save()
+//         ctx.strokeStyle= enemy.aggro ? "rgba(0, 13, 255, 0.62)": "rgba(7, 222, 7, 0.9)"
+//         ctx.lineWidth = 2;
+//         ctx.beginPath()
+//         ctx.arc(
+//             enemy.centerX,
+//             enemy.centerY,
+//             enemy.aggro ?  enemy.deAggro : enemy.aggroArea,
+//             0,
+//              Math.PI*2)
+//              ctx.stroke()
+//              ctx.restore()
 
-    })
-}
+//     })
+// }
 
      function drawEntities(ctxEntities, deltatime, camera){
         ctxEntities.clearRect(0, 0, entities.width, entities.height )
@@ -315,8 +315,8 @@ function triggers(){
         camera.follow(player);
         
         drawMap(ctx, camera);
-        drawHitboxes(ctx); // disegno le hitbox sopra
-        debugAggroRange(ctx)
+        // drawHitboxes(ctx); // disegno le hitbox sopra
+        // debugAggroRange(ctx)
         player.update(inputs, input, deltaTime);
         drawEntities(ctxEntities, deltaTime, camera)
         drawTorchLight(ctxFx, camera, deltaTime)

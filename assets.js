@@ -251,8 +251,8 @@ export class Candle extends Assets{
         this.frameInterval = 1000/this.fps;
         //// luce
         this.isLightSource = true;
-        this.lightInner = 40;
-        this.lightOuter = 60;
+        this.lightInner = 60;
+        this.lightOuter = 90;
         this.pulsetimer = 0
         // l'area anche se casuale deve essere un cerchio
     }
@@ -284,8 +284,8 @@ export class Candlebra extends Assets{
         this.frameInterval = 1000/this.fps;
         ////luce
          this.isLightSource = true;
-          this.lightInner = 25;
-        this.lightOuter = 40;
+          this.lightInner = 30;
+        this.lightOuter = 50;
         this.pulsetimer = 0
     }
   randomLight(deltatime){
