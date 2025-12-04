@@ -21,10 +21,18 @@
             background-color: black;
             touch-action: none; /* previene scroll e zoom accidentali */
             user-select: none;  /* niente selection accidentale */
+             -webkit-user-select: none;
+                -webkit-tap-highlight-color: transparent;
             height: 90vh;
              display: flex;
             justify-content: center;
          
+        }
+        button{
+             touch-action: none;
+              -webkit-user-select: none;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
         }
         .console-bg{
            
@@ -183,23 +191,27 @@
         #touch-controls button {
             width: 3rem;
             height: 3rem;
-            font-size: 3vh;
+            font-size: 1.5rem;
             border-radius: 50px;
             border: 2px solid black;
             opacity: 0.8;
             box-shadow: 4px 4px 7px var(--gb-screen-frame);
             color: blanchedalmond;
         }
+
+
             #btn-up {
                 grid-column: 2;
                 grid-row: 1;
                   background-color:var(--gb-dpad);
+         
             }
 
             #btn-left {
                 grid-column: 1;
                 grid-row: 2;
                   background-color:var(--gb-dpad);
+                  
             }
 
             #btn-right {
@@ -222,17 +234,16 @@
                 
             }
             #action-btns{
-                
                 width: 7rem ;
                 height: 7rem;
             }
             #btn-attack{
                 position: relative;
                 top: 2rem;
-                background-color: var(--gb-button-a-b)
+                background-color: var(--gb-button-a-b);
             }
             #btn-interact{
-                background-color: var(--gb-button-a-b)
+                background-color: var(--gb-button-a-b); 
             }
             #reset {
             display: flex;
@@ -300,13 +311,13 @@
             transform: scale(0.8) rotate(-45deg);
         }
         #reset-cont{
-            top:15%; 
+            bottom: 75%; 
             left: 10%;
             transform: translateX(-50%);
         }
         #fullscreen-cont{
             
-                top:15%; 
+              bottom: 75%;  
                 left: 90%;
             transform: translateX(-50%);
         }

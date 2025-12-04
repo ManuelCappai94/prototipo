@@ -37,6 +37,7 @@ window.addEventListener("load", function(){
      const camera = new Camera();
     let currentMapData = null;
     let assetsLoaded = false;
+    let isFullScreen = false;
 
   
     canvas.width = camera.resWidth;
@@ -70,8 +71,17 @@ window.addEventListener("load", function(){
         const mapHeight = tileLenght.length
         camera.mapWidth = mapWidht * tileSize;
         camera.mapHeight = mapHeight * tileSize;
-       
         assetsLoaded = true;
+
+                const wasFullscreen = localStorage.getItem("isFullscreen");
+        ///tieni fullscreen al caricamento
+        if (wasFullscreen && !document.fullscreenElement) {
+        // Deve essere riattivato al primo input
+        window.addEventListener("pointerdown", () => {
+            document.documentElement.requestFullscreen();
+        }, { once: true });
+}
+
      
     requestAnimationFrame(animate);
 }
@@ -79,15 +89,22 @@ btnfull.addEventListener("touchend", (e) =>{
     e.preventDefault();
     if(!document.fullscreenElement){
         document.documentElement.requestFullscreen()
+        isFullScreen = true;
+        localStorage.setItem("isFullscreen", "true");
     } else {
         document.exitFullscreen()
+        isFullScreen = false;
+        localStorage.removeItem("isFullscreen");
     }
 })
+
+
 
 document.addEventListener("keyup", (e) =>{
     if(e.key === "p" ) {
         localStorage.clear()
         location.reload()
+
     }
 })
 
@@ -313,7 +330,7 @@ function triggers(){
             requestAnimationFrame(animate)
             return
         } 
-       
+
         ctx.clearRect( 0,0, canvas.width, canvas.height);
         //quindi diventa time stamp di questo loop meno il time stamp del loop precedente;
         const deltaTime = timeStamp - lastTime;

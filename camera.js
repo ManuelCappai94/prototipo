@@ -42,8 +42,8 @@ export default class Camera {
         const viewportW = this.resWidth / this.scale; //deciso in zoom alla fine di script
         const viewportH = this.resHeight / this.scale;
         ///questo decide quanto centrare la camera
-        this.x = player.x + player.w / 2 - viewportW/2;
-        this.y = player.y + player.h / 2 - viewportH/2;
+        this.x = Math.floor(player.x + player.w / 2 - viewportW/2);
+        this.y = Math.floor(player.y + player.h / 2 - viewportH/2);
     
     // clamp ai bordi della mappa
         this.x = Math.max(0, Math.min(this.x, this.mapWidth - this.resWidth / this.scale));
