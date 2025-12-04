@@ -152,7 +152,7 @@ const maps = [
         new Vase(93*16, 37*16),
          //keys
          new Keys(103*16, 15*16, "personnel"),
-         new Keys(56*16, 14*16, "library"),
+         new Keys(55*16, 14*16, "library"),
          new Keys(10*16, 36*16, "rooms"),
          new Keys(17*16, 8*16, "torture_chamber"),
        ],
