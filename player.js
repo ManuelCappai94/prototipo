@@ -195,11 +195,11 @@ export default class Player {
                 }
                 if(obj.canInteract && obj instanceof Door){
                     obj.interactDoor(this)
-                    console.log("aperto")
+                 
                 }
                 if(obj.canInteract && obj instanceof HiddenDoor){
                 obj.openHidden()
-                console.log("muro aperto")}
+               }
                 if(obj.canInteract && obj instanceof Keys && !this.isCollected){
                     obj.collectskeys()
                     obj.createMessage()
@@ -215,7 +215,7 @@ export default class Player {
     }
     playerAttacks(){
         if(this.isAttacking){
-             //non spam e non da morto
+            
             this.state = `attack${this.lastDirection}` //cosi prende la direzione giusta
             this.maxSpeed = 0
         }
@@ -299,6 +299,7 @@ export default class Player {
       
     }
         createMessage(){
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); //by chat gpt
             const textContainer = document.querySelector(".text-container")
             
             const div = document.createElement("div")
@@ -307,7 +308,7 @@ export default class Player {
             message.classList.add("text")
            
 
-            if(window.innerHeight > window.innerWidth){
+            if(isMobile){
                 message.textContent = `YOU DIED ! press reset to start a new game`
             } else {
                 message.textContent = `YOU DIED ! press p to start a new game`

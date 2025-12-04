@@ -317,7 +317,7 @@ export class Gino extends Enemies {
                     // direzione verticale dominante
                     this.state = this.dirY > 0 ? "attack_bottom" : "attack_top";
                 }
-                console.log(Math.abs(this.dirX),Math.abs(this.dirY) )
+                // console.log(Math.abs(this.dirX),Math.abs(this.dirY) )
     }
    
           

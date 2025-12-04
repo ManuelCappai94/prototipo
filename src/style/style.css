@@ -115,7 +115,7 @@
                 font-family:  "Pixelify Sans", sans-serif;
                 font-size: 20px;
                 }
-            #touch-controls, #reset {
+            #touch-controls, #reset, #fullscreen-cont {
                 display: none;
             }
             .bars{
@@ -137,6 +137,7 @@
                 border: 1px solid var(--gb-dpad);
                 background-color: var(--gb-dpad);
             }
+          
           
 
          @media screen and (max-width: 992px) {
@@ -184,9 +185,8 @@
             height: 3rem;
             font-size: 3vh;
             border-radius: 50px;
+            border: 2px solid black;
             opacity: 0.8;
-            backdrop-filter: blur(4px);
-           
             box-shadow: 4px 4px 7px var(--gb-screen-frame);
             color: blanchedalmond;
         }
@@ -216,8 +216,8 @@
             #reset-cont{
             position: fixed;
                 z-index: 9999;
-                bottom: 36svh; 
-                left: 50%;
+                bottom: 40%; 
+                left: 35%;
             transform: translateX(-50%);
                 
             }
@@ -235,13 +235,39 @@
                 background-color: var(--gb-button-a-b)
             }
             #reset {
-            display: block;
-            width: 10vh;
-            height: 6vh;
-            font-size: 3vh;
-            border-radius: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 3rem;
+            height: 2rem;
+            font-size: 1rem;
+            border-radius: 20px;
             opacity: 0.8;
-            backdrop-filter: blur(4px);
+           
+            color: blanchedalmond;
+             background-color:var(--gb-dpad);
+            box-shadow: 2px 2px 5px var(--gb-screen-frame);
+            border: 2px solid black;
+            }
+            #fullscreen-cont{
+                 display: block;
+           
+            position: fixed;
+                z-index: 9999;
+                bottom: 40%; 
+                left: 70%;
+            transform: translateX(-50%);
+            }
+            .fullscreen{
+                display: flex;
+                 justify-content: center;
+            align-items: center;
+            width: 3rem;
+            height: 2rem;
+            font-size: 1rem;
+            border-radius: 20px;
+            opacity: 0.8;
+           border: 2px solid black;
             color: blanchedalmond;
              background-color:var(--gb-dpad);
             box-shadow: 2px 2px 5px var(--gb-screen-frame);
@@ -250,9 +276,9 @@
             width: 120px;
             height: 120px;
             }
-                .avvisi {
-                font-size: 10px;
-                }
+        .avvisi {
+            font-size: 10px;
+            }
 
          }
          @media (orientation: landscape) and (max-width: 992px) {
@@ -272,5 +298,21 @@
         .bars{
             right: 2dvi;
             transform: scale(0.8) rotate(-45deg);
+        }
+        #reset-cont{
+            top:15%; 
+            left: 10%;
+            transform: translateX(-50%);
+        }
+        #fullscreen-cont{
+            
+                top:15%; 
+                left: 90%;
+            transform: translateX(-50%);
+        }
+        .led{
+           
+            top : 2rem;
+            right: 10svi;
         }
 }

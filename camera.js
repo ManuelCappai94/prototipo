@@ -57,7 +57,7 @@ export default class Camera {
         this.y += shakeY;
 
         this.shakeDuration--;
-        console.log("x" ,this.mapWidth, "y", this.mapHeight)
+        // console.log("x" ,this.mapWidth, "y", this.mapHeight)
     }
 
 }

@@ -8,6 +8,7 @@ import Camera from "./camera.js";
 const btnAttack = document.getElementById("btn-attack")
 const btnInteract = document.getElementById("btn-interact");
 const btnreset = document.getElementById("reset");
+const btnfull = document.querySelector(".fullscreen");
 
 window.addEventListener("load", function(){
     const loading = document.getElementById("loading");
@@ -74,7 +75,14 @@ window.addEventListener("load", function(){
      
     requestAnimationFrame(animate);
 }
-
+btnfull.addEventListener("touchend", (e) =>{
+    e.preventDefault();
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen()
+    } else {
+        document.exitFullscreen()
+    }
+})
 
 document.addEventListener("keyup", (e) =>{
     if(e.key === "p" ) {

@@ -313,7 +313,7 @@ class Interactable extends Assets {
       if(!this.canInteract) return
         if(this.isKeyRequired){
             if (!player.inventory?.includes(this.keyType)) {
-            console.log("Ti serve una chiave!");
+           
             this.createMessage()
             return
         } }
@@ -326,7 +326,7 @@ class Interactable extends Assets {
           this.isOpen = true;
           this.animationActive = true;
             this.aniamtionTimer = 0; //punto iniziale, per calcolare la differenza tra inizio animazione e timestamp attuale. 
-            console.log(this.isKeyRequired)
+         
         }   
        }
            createMessage(){
@@ -527,7 +527,7 @@ export class Keys extends Interactable {
         this.type = type
         if(type ==="personnel"){
             const storedKey = JSON.parse(localStorage.getItem("personeelKey"))
-            console.log(storedKey)
+            
             if(storedKey){
                 this.hitbox = storedKey.hitbox
                 this.frameY = storedKey.frameY
@@ -609,50 +609,37 @@ export class Keys extends Interactable {
     }
 
     collectskeys(){
-        let inventory = [];
+       
         if(this.type === "library" && this.canInteract && !this.isCollected ){ 
-            this.isCollected = true
-            this.frameY = 1
-            this.hitbox = {x:0, y:0, width:0, height:0}
-            inventory = JSON.parse(localStorage.getItem("inventory")) || []
-            inventory.push(this.type)
-            
-            localStorage.setItem("inventory", JSON.stringify(inventory))
-            this.keyCollected()
+            this.collectedKey()
+            this.savekey()
             
         }
         if(this.type === "personnel" && this.canInteract && !this.isCollected ){ 
-            this.isCollected = true
-            this.frameY = 1
-            this.hitbox = {x:0, y:0, width:0, height:0}
-            inventory = JSON.parse(localStorage.getItem("inventory")) || []
-            inventory.push(this.type)
-            localStorage.setItem("inventory", JSON.stringify(inventory))
-            this.keyCollected()
+            this.collectedKey()
+            this.savekey()
             
         }
         if(this.type === "rooms" && this.canInteract && !this.isCollected ){ 
-            this.isCollected = true
-            this.frameY = 1
-            this.hitbox = {x:0, y:0, width:0, height:0}
-            inventory = JSON.parse(localStorage.getItem("inventory")) || []
-            inventory.push(this.type)
-            localStorage.setItem("inventory", JSON.stringify(inventory))
-            this.keyCollected()
+            this.collectedKey()
+            this.savekey()
            
         }
         if(this.type === "torture_chamber" && this.canInteract && !this.isCollected ){ 
-            this.isCollected = true
+           this.collectedKey()
+            this.savekey()   
+        }
+    }
+    collectedKey(){
+            let inventory = []
+         this.isCollected = true
             this.frameY = 1
             this.hitbox = {x:0, y:0, width:0, height:0}
             inventory = JSON.parse(localStorage.getItem("inventory")) || []
             inventory.push(this.type)
             localStorage.setItem("inventory", JSON.stringify(inventory))
-            this.keyCollected()
-            
-        }
     }
-    keyCollected(){
+    savekey(){
         if(this.isCollected && this.type === "library"){
             const savedLibrary ={
                 isCollected : true, 
