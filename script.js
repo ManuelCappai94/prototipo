@@ -50,14 +50,14 @@ window.addEventListener("load", function(){
   
         
  //mi ritorna la lunghezza di ogni array presente nel current map
-function detectOrientiationScreen(){
-    if(window.innerHeight > window.innerWidth){
-        document.body.classList.add("rotate");
-    } else {
-        document.body.classList.remove("rotate");
-    }
-}
-window.addEventListener("resize", detectOrientiationScreen)
+// function detectOrientiationScreen(){
+//     if(window.innerHeight > window.innerWidth){
+//         document.body.classList.add("rotate");
+//     } else {
+//         document.body.classList.remove("rotate");
+//     }
+// }
+// window.addEventListener("resize", detectOrientiationScreen)
     async function startGame() {
        
         currentMapData = await loadTileMap(currentMap.name); 
@@ -83,7 +83,7 @@ document.addEventListener("keyup", (e) =>{
     }
 })
 
-reset.addEventListener("touchend", (e) =>{
+btnreset.addEventListener("touchend", (e) =>{
     e.preventDefault()
       localStorage.clear()
         location.reload()
@@ -91,7 +91,7 @@ reset.addEventListener("touchend", (e) =>{
 
 function drawTorchLight(ctxFx, camera, deltaTime){
     ctxFx.clearRect(0, 0, layerFx.width, layerFx.height)
-    ctxFx.fillStyle = "rgba(0, 0, 0, 0.65)"
+    ctxFx.fillStyle = "rgba(0, 0, 0, 0.50)"
     ctxFx.fillRect(0, 0, layerFx.width, layerFx.height);
     // camera.apply(ctxFx);
     ctxFx.globalCompositeOperation = "destination-out";
@@ -322,7 +322,7 @@ function triggers(){
         drawTorchLight(ctxFx, camera, deltaTime)
         collision(player, deltaTime);
         triggers()
-       detectOrientiationScreen()
+    //    detectOrientiationScreen()
         requestAnimationFrame(animate)
     };
     camera.setZoom(4); 
