@@ -325,7 +325,7 @@ function triggers(){
     //    detectOrientiationScreen()
         requestAnimationFrame(animate)
     };
-    camera.setZoom(4); 
+    camera.setZoom(7); 
     startGame()
 })
 
