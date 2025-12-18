@@ -1,38 +1,26 @@
 
-
+function getImage(string){
+    const asset = new Image()
+    asset.src = string
+    return asset
+}
 
 const prompts =  {
-        tree :  new Image(),
-        vase : new Image(),
-        treasure: new Image(),
-        frame: new Image(),
+        tree :  getImage("../../assets/tree-sprite.png"),
+        vase : getImage("../../assets/vase.png"),
+        treasure: getImage("../../assets/treasure.png"),
+        frame: getImage("../../assets/eye.png"),
         doors: {
-            doorSud: new Image(),
-            doorEst: new Image(),
-            doorOvest: new Image(),
+            doorSud: getImage("../../assets/doorFrontSud.png"),
+            doorEst: getImage("../../assets/doorSideLeft.png"),
+            doorOvest: getImage("../../assets/doorSideRight.png"),
         },
-        candle : new Image(),
-        barrel : new Image(),
-        candelbra : new Image(),
-        hiddenWall : new Image(),  
-        key: new Image(),      
+        candle : getImage("../../assets/candle.png"),
+        barrel : getImage("../../assets/barrel.png"),
+        candelbra : getImage("../../assets/candlebra.png"),
+        hiddenWall : getImage("../../assets/hiddenWall.png"),  
+        key: getImage("../../assets/key.png"),      
     }
-
-
-prompts.tree.src = "assets/tree-sprite.png" ///cosi accedo all'immagine dentro all'oggetto;
-prompts.vase.src = "assets/vase.png"
-prompts.treasure.src = "assets/treasure.png"
-prompts.doors.doorSud.src = "assets/doorFrontSud.png"
-prompts.doors.doorEst.src = "assets/doorSideLeft.png"
-prompts.doors.doorOvest.src = "assets/doorSideRight.png"
-prompts.frame.src= "assets/eye.png"
-prompts.candle.src ="assets/candle.png"
-prompts.hiddenWall.src = "assets/hiddenWall.png"
-prompts.candelbra.src = "assets/candlebra.png"
-prompts.barrel.src = "assets/barrel.png"
-prompts.key.src = "assets/key.png"
-
-
 
 
 export default class Assets { //assets non va evocato perchè astratto, le estensioni si!
@@ -164,6 +152,7 @@ export default class Assets { //assets non va evocato perchè astratto, le esten
             hitbox.y < this.hitbox.y + this.hitbox.height &&
             hitbox.y + hitbox.height > this.hitbox.y
     ){
+        //devo rendere questi danni indipendenti dal framerate moltiplicando per dt, lo farò durante il refactor
         if(this.isDesctruble){
             this.damage(2);
         }
@@ -526,7 +515,7 @@ export class Keys extends Interactable {
         this.offsetH = 0.5;
         this.type = type
         if(type ==="personnel"){
-            const storedKey = JSON.parse(localStorage.getItem("personeelKey"))
+            const storedKey = JSON.parse(localStorage.getItem("personnel"))
             
             if(storedKey){
                 this.hitbox = storedKey.hitbox
@@ -546,7 +535,7 @@ export class Keys extends Interactable {
              }
         }
         if(type === "library"){
-            const libraryKey = JSON.parse(localStorage.getItem("libraryKey"))
+            const libraryKey = JSON.parse(localStorage.getItem("library"))
             
             if(libraryKey){
                 this.hitbox = libraryKey.hitbox
@@ -566,7 +555,7 @@ export class Keys extends Interactable {
              }
         }
         if(type === "rooms"){
-            const roomsKey = JSON.parse(localStorage.getItem("roomsKey"))
+            const roomsKey = JSON.parse(localStorage.getItem("rooms"))
             
             if(roomsKey){
                 this.hitbox = roomsKey.hitbox
@@ -609,70 +598,77 @@ export class Keys extends Interactable {
     }
 
     collectskeys(){
-       
         if(this.type === "library" && this.canInteract && !this.isCollected ){ 
-            this.collectedKey()
-            this.savekey()
+            this.collectedKey(this.type)
+            // this.savekey()
             
         }
         if(this.type === "personnel" && this.canInteract && !this.isCollected ){ 
-            this.collectedKey()
-            this.savekey()
+            this.collectedKey(this.type)
+            // this.savekey()
             
         }
         if(this.type === "rooms" && this.canInteract && !this.isCollected ){ 
-            this.collectedKey()
-            this.savekey()
+            this.collectedKey(this.type)
+            // this.savekey()
            
         }
         if(this.type === "torture_chamber" && this.canInteract && !this.isCollected ){ 
-           this.collectedKey()
-            this.savekey()   
+           this.collectedKey(this.type)
+            // this.savekey()   
         }
     }
-    collectedKey(){
+    collectedKey(keyStored){
             let inventory = []
-         this.isCollected = true
+            this.isCollected = true
             this.frameY = 1
             this.hitbox = {x:0, y:0, width:0, height:0}
+            if(this.isCollected){
+            const savedkey = {
+                isCollected : true, 
+                frameY : 1,
+                hitbox : {x:0, y:0, width:0, height:0}
+            }
+            localStorage.setItem(keyStored, JSON.stringify(savedkey))
+        }
             inventory = JSON.parse(localStorage.getItem("inventory")) || []
             inventory.push(this.type)
             localStorage.setItem("inventory", JSON.stringify(inventory))
     }
-    savekey(){
-        if(this.isCollected && this.type === "library"){
-            const savedLibrary ={
-                isCollected : true, 
-                frameY : 1,
-                hitbox : {x:0, y:0, width:0, height:0}
-            }
-            localStorage.setItem("libraryKey", JSON.stringify(savedLibrary))
-        }
-        if(this.isCollected && this.type === "personnel"){
-            const savedPersoneel ={
-                isCollected : true, 
-                frameY : 1,
-                hitbox : {x:0, y:0, width:0, height:0}
-            }
-            localStorage.setItem("personeelKey", JSON.stringify(savedPersoneel))
-        }
-        if(this.isCollected && this.type === "rooms"){
-            const savedRooms ={
-                isCollected : true, 
-                frameY : 1,
-                hitbox : {x:0, y:0, width:0, height:0}
-            }
-            localStorage.setItem("roomsKey", JSON.stringify(savedRooms))
-        }
-        if(this.isCollected && this.type === "torture_chamber"){
-            const savedTorture ={
-                isCollected : true, 
-                frameY : 1,
-                hitbox : {x:0, y:0, width:0, height:0}
-            }
-            localStorage.setItem("torture_chamber", JSON.stringify(savedTorture))
-        }
-    }
+    // savekey(){
+    //     if(this.isCollected && this.type === "library"){
+    //         const savedLibrary ={
+    //             isCollected : true, 
+    //             frameY : 1,
+    //             hitbox : {x:0, y:0, width:0, height:0}
+    //         }
+    //         localStorage.setItem("libraryKey", JSON.stringify(savedLibrary))
+    //     }
+    //     if(this.isCollected && this.type === "personnel"){
+    //         const savedPersoneel ={
+    //             isCollected : true, 
+    //             frameY : 1,
+    //             hitbox : {x:0, y:0, width:0, height:0}
+    //         }
+    //         localStorage.setItem("personeelKey", JSON.stringify(savedPersoneel))
+    //     }
+    //     if(this.isCollected && this.type === "rooms"){
+    //         const savedRooms ={
+    //             isCollected : true, 
+    //             frameY : 1,
+    //             hitbox : {x:0, y:0, width:0, height:0}
+    //         }
+    //         localStorage.setItem("roomsKey", JSON.stringify(savedRooms))
+    //     }
+    //     if(this.isCollected && this.type === "torture_chamber"){
+    //         const savedTorture ={
+    //             isCollected : true, 
+    //             frameY : 1,
+    //             hitbox : {x:0, y:0, width:0, height:0}
+    //         }
+    //         localStorage.setItem("torture_chamber", JSON.stringify(savedTorture))
+    //     }
+    // }
 }
 
 export class Destructable extends Assets {

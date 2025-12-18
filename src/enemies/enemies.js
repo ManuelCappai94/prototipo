@@ -1,5 +1,5 @@
-import Player from "./player.js";
-import { tileSize } from "./camera.js";
+
+import { tileSize } from "../camera/camera.js";
 
 
 
@@ -120,7 +120,7 @@ export class Gino extends Enemies {
         //movement
         this.speedx = 0;
         this.speedy = 0;
-        this.maxSpeeed = 7 * tileSize;
+        this.maxSpeeed = 6 * tileSize;
         this.spawnX = this.x;
         this.spawnY = this.y;
         this.returnToIdle = 70 // più è alto più rallenta

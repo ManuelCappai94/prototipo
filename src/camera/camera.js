@@ -8,8 +8,8 @@
 // const MAP_WIDTH = 1920;
 // const MAP_HEIGHT = 1080;
 
-const resolution_width =  1920
-const resolution_height = 1080
+// const resolution_width =  1920
+// const resolution_height = 1080
 
 // Calcoliamo il fattore di scala rispetto allo schermo
 // const scaleX = resolution_width / MAP_WIDTH;
@@ -46,8 +46,8 @@ export default class Camera {
         this.y = Math.floor(player.y + player.h / 2 - viewportH/2);
     
     // clamp ai bordi della mappa
-        this.x = Math.max(0, Math.min(this.x, this.mapWidth - this.resWidth / this.scale));
-        this.y = Math.max(0, Math.min(this.y, this.mapHeight - this.resHeight / this.scale))
+        this.x = Math.max(0, Math.min(this.x, this.mapWidth - viewportW));
+        this.y = Math.max(0, Math.min(this.y, this.mapHeight - viewportH))
 
         if (this.shakeDuration > 0) {
         const shakeX = (Math.random() - 0.5) * this.magnitude;
@@ -64,6 +64,7 @@ export default class Camera {
 
 apply (ctx) {
     ctx.setTransform(this.scale, 0, 0, this.scale, -this.x * this.scale, -this.y * this.scale);
+    console.log(this.y)
 }
 setZoom(zoom) {
         this.scale = zoom;

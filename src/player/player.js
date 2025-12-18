@@ -1,6 +1,6 @@
 //disegnamo il player qui; creremo un costruttore con le classi
-import { tileSize } from "./camera.js";
-import { Door, HiddenDoor, Keys } from "./assets.js";
+import { tileSize } from "../camera/camera.js";
+import { Door, HiddenDoor, Keys } from "../assets/assets.js";
 
 export default class Player {
 

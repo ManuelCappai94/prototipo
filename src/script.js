@@ -1,10 +1,10 @@
-import Player from "./player.js";
-import InputHandler, {input} from "./input.js";
-import { drawMap, setMapData, currentMap, collision} from "./maps.js";
-import { loadTileMap } from "./maps/Villa/loadMap.js";
-import { Eye, Door, Vase, Candle, HiddenDoor, Destructable } from "./assets.js";
-import { tileSize } from "./camera.js";
-import Camera from "./camera.js";
+import Player from "./player/player.js";
+import InputHandler, {input} from "./input/input.js";
+import { drawMap, setMapData, currentMap, collision} from "./maps/maps.js";
+import { loadTileMap } from "./maps/locations/Villa/loadMap.js";
+import { Eye, Door, Vase, Candle, HiddenDoor, Destructable } from "./assets/assets.js";
+import { tileSize } from "./camera/camera.js";
+import Camera from "./camera/camera.js";
 const btnAttack = document.getElementById("btn-attack")
 const btnInteract = document.getElementById("btn-interact");
 const btnreset = document.getElementById("reset");
@@ -72,6 +72,7 @@ window.addEventListener("load", function(){
         camera.mapWidth = mapWidht * tileSize;
         camera.mapHeight = mapHeight * tileSize;
         assetsLoaded = true;
+        console.log(mapHeight, mapWidht)
 
                 const wasFullscreen = localStorage.getItem("isFullscreen");
         ///tieni fullscreen al caricamento
